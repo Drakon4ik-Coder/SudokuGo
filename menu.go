@@ -28,7 +28,7 @@ func menuListen(stopChannel chan bool) {
 
 // position of
 var selected int
-var output = [4]string{"Welcome to Sudoku\n", " New Game", " Load Game", " Exit"}
+var output = [4]string{"Welcome to Sudoku!\n", " New Game", " Load Game", " Exit"}
 var outputLimit = [2]int{1, 3}
 
 func menu() bool {

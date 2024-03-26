@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/eiannone/keyboard"
 )
 
@@ -18,6 +19,8 @@ func game() bool {
 }
 
 func main() {
+	// disable console cursor
+	fmt.Print("\033[?25l")
 	defer keyboard.Close()
 	menu()
 	//game()
