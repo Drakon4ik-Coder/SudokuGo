@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/eiannone/keyboard"
+)
+
 func frame() bool {
 	return true
 }
@@ -14,5 +18,7 @@ func game() bool {
 }
 
 func main() {
-	game()
+	defer keyboard.Close()
+	menu()
+	//game()
 }
