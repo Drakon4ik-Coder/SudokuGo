@@ -38,3 +38,17 @@ func DisableCursor() bool {
 	}
 	return true
 }
+
+func EnableCursor() bool {
+	if runtime.GOOS == "windows" {
+		fmt.Print("\033[?25h")
+
+	} else if runtime.GOOS == "linux" {
+		fmt.Print("\033[?25h")
+	} else {
+		ClearConsole()
+		return false
+	}
+	ClearConsole()
+	return true
+}

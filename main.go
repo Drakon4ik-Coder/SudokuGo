@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/eiannone/keyboard"
 	"os"
+	"time"
 )
 
 func frame() bool {
@@ -20,6 +21,11 @@ func game() bool {
 }
 
 func main() {
+	// close keyboard output
+	defer keyboard.Close()
+	// enable cursor after program finish
+	defer EnableCursor()
+
 	// disable console cursor
 	if !DisableCursor() {
 		fmt.Print("Unfortunately we cannot disable your cursor blink. Press Enter to continue and Ctrl+Q to exit")
@@ -35,12 +41,12 @@ func main() {
 			}
 		}
 	}
-	// close keyboard output
-	defer keyboard.Close()
 
 	// call menu
 	if !menu() {
-		fmt.Print("Thanks for choosing to play our Sudoku. May you have a blessed day :)")
+		ClearConsole()
+		infoFont.Print("\tThanks for choosing to play our Sudoku. May you have a blessed day :)")
+		time.Sleep(time.Second * 5)
 	}
 	//game()
 }

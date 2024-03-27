@@ -3,7 +3,17 @@ package main
 import (
 	"fmt"
 	"github.com/eiannone/keyboard"
+	"github.com/fatih/color"
 )
+
+// print with highlighted font
+var optionFont *color.Color
+var infoFont *color.Color
+
+func init() {
+	infoFont = color.New(color.FgCyan)
+	optionFont = color.New(color.FgMagenta)
+}
 
 // init keyboard listening
 func init() {
@@ -34,9 +44,6 @@ func menuListen() {
 // select option
 var selected int
 
-// start menu options with output
-var outputMenuStart = [4]string{"Welcome to Sudoku! (press Enter to choose)\n", " New Game", " Load Game", " Exit"}
-
 // where options start and end
 var outputLimit [2]int
 
@@ -45,6 +52,9 @@ var chosen bool
 
 // create menu and return true if succeeded, false if user exited
 func menu() bool {
+	// start menu options with output
+	outputMenuStart := [4]string{"\tWelcome to Sudoku! (operate with Up and Down, then press Enter to confirm)\n", " New Game", " Load Game", " Exit"}
+
 	// initialise menu data
 	selected = 1
 	outputLimit = [2]int{1, 3}
@@ -62,9 +72,12 @@ func menu() bool {
 			ClearConsole()
 			for index, element := range outputMenuStart {
 				if index == selected {
-					fmt.Print(" >")
+					optionFont.Println(" >" + element)
+				} else if index < outputLimit[0] {
+					infoFont.Println(element)
+				} else {
+					fmt.Println(element)
 				}
-				fmt.Println(element)
 			}
 			lastSelected = selected
 		}
