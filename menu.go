@@ -5,6 +5,7 @@ import (
 	"github.com/eiannone/keyboard"
 )
 
+// init keyboard listening
 func init() {
 	err := keyboard.Open()
 	if err != nil {
@@ -12,7 +13,8 @@ func init() {
 	}
 }
 
-func menuListen(stopChannel chan bool) {
+// detect arrows Up and Down and Enter and change corresponding global variables
+func menuListen() {
 	for {
 		_, key, err := keyboard.GetKey()
 		if err != nil {
@@ -22,24 +24,43 @@ func menuListen(stopChannel chan bool) {
 			selected++
 		} else if key == keyboard.KeyArrowUp && selected > outputLimit[0] {
 			selected--
+		} else if key == keyboard.KeyEnter {
+			chosen = true
+			break
 		}
 	}
 }
 
-// position of
+// select option
 var selected int
-var output = [4]string{"Welcome to Sudoku!\n", " New Game", " Load Game", " Exit"}
-var outputLimit = [2]int{1, 3}
 
+// start menu options with output
+var outputMenuStart = [4]string{"Welcome to Sudoku! (press Enter to choose)\n", " New Game", " Load Game", " Exit"}
+
+// where options start and end
+var outputLimit [2]int
+
+// was the choice made
+var chosen bool
+
+// create menu and return true if succeeded, false if user exited
 func menu() bool {
+	// initialise menu data
 	selected = 1
+	outputLimit = [2]int{1, 3}
+	chosen = false
+
+	// check if option was changed since last print
 	lastSelected := -1
-	stopChannel := make(chan bool)
-	go menuListen(stopChannel)
+
+	// run background key listener
+	go menuListen()
+
+	// iterate until option is chosen
 	for {
 		if lastSelected != selected {
 			ClearConsole()
-			for index, element := range output {
+			for index, element := range outputMenuStart {
 				if index == selected {
 					fmt.Print(" >")
 				}
@@ -47,6 +68,24 @@ func menu() bool {
 			}
 			lastSelected = selected
 		}
+		if chosen {
+			break
+		}
 	}
+	switch selected {
+	case 1:
+		return newGameMenu()
+	case 2:
+		return loadGame()
+	case 3:
+		return false
+	default:
+		panic("How did you do it?!")
+
+	}
+	return true
+}
+
+func newGameMenu() bool {
 	return true
 }

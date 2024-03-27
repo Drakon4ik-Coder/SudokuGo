@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/eiannone/keyboard"
+	"os"
 )
 
 func frame() bool {
@@ -20,8 +21,26 @@ func game() bool {
 
 func main() {
 	// disable console cursor
-	fmt.Print("\033[?25l")
+	if !DisableCursor() {
+		fmt.Print("Unfortunately we cannot disable your cursor blink. Press Enter to continue and Ctrl+Q to exit")
+		for {
+			_, key, err := keyboard.GetKey()
+			if err != nil {
+				panic(err)
+			}
+			if key == keyboard.KeyEnter {
+				break
+			} else if key == keyboard.KeyCtrlQ {
+				os.Exit(101)
+			}
+		}
+	}
+	// close keyboard output
 	defer keyboard.Close()
-	menu()
+
+	// call menu
+	if !menu() {
+		fmt.Print("Thanks for choosing to play our Sudoku. May you have a blessed day :)")
+	}
 	//game()
 }

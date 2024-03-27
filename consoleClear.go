@@ -8,6 +8,7 @@ import (
 
 func init() {
 	screen.Clear()
+	screen.MoveTopLeft()
 }
 
 func ClearConsole() {
