@@ -2,10 +2,24 @@ package main
 
 import (
 	"fmt"
+	"github.com/inancgumus/screen"
 	"golang.org/x/sys/windows"
 	"os"
 	"runtime"
+	"strings"
 )
+
+func init() {
+	screen.Clear()
+	screen.MoveTopLeft()
+}
+
+func ClearConsole() {
+	screen.MoveTopLeft()
+	windth, height := screen.Size()
+	fmt.Print(strings.Repeat(strings.Repeat(" ", windth)+"\n", height))
+	screen.MoveTopLeft()
+}
 
 func DisableCursor() bool {
 	if runtime.GOOS == "windows" {
