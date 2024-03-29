@@ -35,6 +35,18 @@ func menu() bool {
 	// check if option was changed since last print
 	lastSelected := -1
 
+	// draw menu for the first time
+	ClearConsole()
+	for index, element := range outputMenuStart {
+		if index < outputLimit[0] {
+			infoFont.Println(element)
+			continue
+		} else if selected == index {
+			focusFont.Print("> ")
+		}
+		focusFont.Println(element)
+	}
+
 	// iterate until option is chosen
 	for {
 		_, key, err := keyboard.GetKey()
@@ -52,13 +64,13 @@ func menu() bool {
 		if lastSelected != selected {
 			ClearConsole()
 			for index, element := range outputMenuStart {
-				if index == selected {
-					focusFont.Println(" >" + element)
-				} else if index < outputLimit[0] {
+				if index < outputLimit[0] {
 					infoFont.Println(element)
-				} else {
-					fmt.Println(element)
+					continue
+				} else if selected == index {
+					focusFont.Print("> ")
 				}
+				focusFont.Println(element)
 			}
 			lastSelected = selected
 		}
@@ -92,7 +104,7 @@ func newGameMenu() bool {
 		{"square", "diagonal", "twodoku", "triangle"},
 		{"12x12", "9x9", "6x6", "4x4"},
 		{"easy", "medium", "hard"},
-		{"5 min", "10 min", "15 min", "30 min", "∞"},
+		{"∞", "5 min", "10 min", "15 min", "30 min"},
 		{},
 		{},
 	}
@@ -100,10 +112,29 @@ func newGameMenu() bool {
 	/*initialise menu data*/
 	selected := 1
 	outputLimit := [2]int{1, 6}
-	newGameParam = [4]int{0, 1, 0, 3}
+	newGameParam = [4]int{0, 1, 0, 0}
 
 	// check if option was changed since last print
 	lastSelected := -1
+
+	// draw menu for the first time
+	ClearConsole()
+	for index, element := range outputMenuOptions {
+		if index < outputLimit[0] {
+			infoFont.Println(element)
+			continue
+		} else if selected == index {
+			focusFont.Print("> ")
+		}
+		focusFont.Print(element)
+		tmpPos := index - outputLimit[0]
+		tmpLen := len(scrollOptions[tmpPos])
+
+		if tmpLen > 0 {
+			optionFont.Print(" < " + scrollOptions[tmpPos][newGameParam[tmpPos]] + " >")
+		}
+		fmt.Println()
+	}
 
 	// iterate until option is chosen
 	for {
@@ -162,7 +193,6 @@ func newGameMenu() bool {
 		}
 		if lastSelected != selected {
 			ClearConsole()
-			fmt.Println(newGameParam)
 			for index, element := range outputMenuOptions {
 				if index < outputLimit[0] {
 					infoFont.Println(element)
