@@ -35,17 +35,22 @@ func menu() bool {
 	// check if option was changed since last print
 	lastSelected := -1
 
-	// draw menu for the first time
-	ClearConsole()
-	for index, element := range outputMenuStart {
-		if index < outputLimit[0] {
-			infoFont.Println(element)
-			continue
-		} else if selected == index {
-			focusFont.Print("> ")
+	// function for drawing frame
+	var Draw func() = func() {
+		ClearConsole()
+		for index, element := range outputMenuStart {
+			if index < outputLimit[0] {
+				infoFont.Println(element)
+				continue
+			} else if selected == index {
+				focusFont.Print("> ")
+			}
+			focusFont.Println(element)
 		}
-		focusFont.Println(element)
 	}
+
+	// draw menu for the first time
+	Draw()
 
 	// iterate until option is chosen
 	for {
@@ -62,16 +67,7 @@ func menu() bool {
 			break
 		}
 		if lastSelected != selected {
-			ClearConsole()
-			for index, element := range outputMenuStart {
-				if index < outputLimit[0] {
-					infoFont.Println(element)
-					continue
-				} else if selected == index {
-					focusFont.Print("> ")
-				}
-				focusFont.Println(element)
-			}
+			Draw()
 			lastSelected = selected
 		}
 	}
@@ -117,24 +113,29 @@ func newGameMenu() bool {
 	// check if option was changed since last print
 	lastSelected := -1
 
-	// draw menu for the first time
-	ClearConsole()
-	for index, element := range outputMenuOptions {
-		if index < outputLimit[0] {
-			infoFont.Println(element)
-			continue
-		} else if selected == index {
-			focusFont.Print("> ")
-		}
-		focusFont.Print(element)
-		tmpPos := index - outputLimit[0]
-		tmpLen := len(scrollOptions[tmpPos])
+	// function for drawing frame
+	var Draw func() = func() {
+		ClearConsole()
+		for index, element := range outputMenuOptions {
+			if index < outputLimit[0] {
+				infoFont.Println(element)
+				continue
+			} else if selected == index {
+				focusFont.Print("> ")
+			}
+			focusFont.Print(element)
+			tmpPos := index - outputLimit[0]
+			tmpLen := len(scrollOptions[tmpPos])
 
-		if tmpLen > 0 {
-			optionFont.Print(" < " + scrollOptions[tmpPos][newGameParam[tmpPos]] + " >")
+			if tmpLen > 0 {
+				optionFont.Print(" < " + scrollOptions[tmpPos][newGameParam[tmpPos]] + " >")
+			}
+			fmt.Println()
 		}
-		fmt.Println()
 	}
+
+	// draw menu for the first time
+	Draw()
 
 	// iterate until option is chosen
 	for {
@@ -192,23 +193,7 @@ func newGameMenu() bool {
 			}
 		}
 		if lastSelected != selected {
-			ClearConsole()
-			for index, element := range outputMenuOptions {
-				if index < outputLimit[0] {
-					infoFont.Println(element)
-					continue
-				} else if selected == index {
-					focusFont.Print("> ")
-				}
-				focusFont.Print(element)
-				tmpPos := index - outputLimit[0]
-				tmpLen := len(scrollOptions[tmpPos])
-
-				if tmpLen > 0 {
-					optionFont.Print(" < " + scrollOptions[tmpPos][newGameParam[tmpPos]] + " >")
-				}
-				fmt.Println()
-			}
+			Draw()
 			lastSelected = selected
 		}
 	}
