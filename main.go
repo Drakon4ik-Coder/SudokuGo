@@ -7,19 +7,6 @@ import (
 	"time"
 )
 
-func frame() bool {
-	return true
-}
-
-func game() bool {
-	frameContinue := frame()
-	for frameContinue {
-		frameContinue = frame()
-		ClearConsole()
-	}
-	return true
-}
-
 func main() {
 	// close keyboard output
 	defer keyboard.Close()
@@ -47,6 +34,7 @@ func main() {
 		ClearConsole()
 		infoFont.Print("\tThanks for choosing to play our Sudoku. May you have a blessed day :)")
 		time.Sleep(time.Second * 5)
+		os.Exit(102)
 	}
-	//game()
+	game()
 }

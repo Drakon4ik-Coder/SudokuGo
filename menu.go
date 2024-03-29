@@ -91,24 +91,25 @@ func menu() bool {
 	return true
 }
 
-var newGameParam [4]int
+var gameParam [4]int
+
+var gameOptions = [][]string{
+	{"square", "diagonal", "twodoku", "triangle"},
+	{"12x12", "9x9", "6x6", "4x4"},
+	{"easy", "medium", "hard"},
+	{"∞", "5 min", "10 min", "15 min", "30 min"},
+	{},
+	{},
+}
 
 func newGameMenu() bool {
 	// start menu options with output
 	outputMenuOptions := [7]string{"\tChoose game options! (operate with arrows, then press Enter to confirm either Start or Exit)\n", " Shape", " Size", " Difficulty", " Clock", " Play", " Exit"}
-	scrollOptions := [][]string{
-		{"square", "diagonal", "twodoku", "triangle"},
-		{"12x12", "9x9", "6x6", "4x4"},
-		{"easy", "medium", "hard"},
-		{"∞", "5 min", "10 min", "15 min", "30 min"},
-		{},
-		{},
-	}
 
 	/*initialise menu data*/
 	selected := 1
 	outputLimit := [2]int{1, 6}
-	newGameParam = [4]int{0, 1, 0, 0}
+	gameParam = [4]int{0, 1, 0, 0}
 
 	// check if option was changed since last print
 	lastSelected := -1
@@ -126,10 +127,10 @@ func newGameMenu() bool {
 				fmt.Print(element)
 			}
 			tmpPos := index - outputLimit[0]
-			tmpLen := len(scrollOptions[tmpPos])
+			tmpLen := len(gameOptions[tmpPos])
 
 			if tmpLen > 0 {
-				optionFont.Print(" < " + scrollOptions[tmpPos][newGameParam[tmpPos]] + " >")
+				optionFont.Print(" < " + gameOptions[tmpPos][gameParam[tmpPos]] + " >")
 			}
 			fmt.Println()
 		}
@@ -150,29 +151,29 @@ func newGameMenu() bool {
 		} else if key == keyboard.KeyArrowDown && selected < outputLimit[1] {
 			selected++
 		} else if key == keyboard.KeyArrowRight {
-			// position in scrollOptions and newGameParam
+			// position in gameOptions and gameParam
 			tmpPos := selected - outputLimit[0]
 			// number of scroll options
-			tmpLen := len(scrollOptions[tmpPos])
+			tmpLen := len(gameOptions[tmpPos])
 
 			// if there are option
 			if tmpLen > 0 {
 				// cycle all options
-				newGameParam[tmpPos] = (newGameParam[tmpPos] + 1) % tmpLen
+				gameParam[tmpPos] = (gameParam[tmpPos] + 1) % tmpLen
 				// trigger frame redraw
 				lastSelected = -1
 			}
 
 		} else if key == keyboard.KeyArrowLeft {
-			// position in scrollOptions and newGameParam
+			// position in gameOptions and gameParam
 			tmpPos := selected - outputLimit[0]
 			// number of scroll options
-			tmpLen := len(scrollOptions[tmpPos])
+			tmpLen := len(gameOptions[tmpPos])
 			// if there are option
 			if tmpLen > 0 {
 				// cycle all options
-				newGameParam[tmpPos] = func() int {
-					newVal := newGameParam[tmpPos] - 1
+				gameParam[tmpPos] = func() int {
+					newVal := gameParam[tmpPos] - 1
 					if newVal < 0 {
 						return tmpLen + newVal
 					}
