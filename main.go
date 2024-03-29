@@ -42,7 +42,7 @@ func main() {
 		}
 	}
 
-	// call menu
+	// exit if user chose to
 	if !menu() {
 		ClearConsole()
 		infoFont.Print("\tThanks for choosing to play our Sudoku. May you have a blessed day :)")

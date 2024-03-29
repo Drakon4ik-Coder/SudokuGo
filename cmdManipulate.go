@@ -39,6 +39,7 @@ func DisableCursor() bool {
 	return true
 }
 
+// make terminal cursor visible
 func EnableCursor() bool {
 	if runtime.GOOS == "windows" {
 		fmt.Print("\033[?25h")
