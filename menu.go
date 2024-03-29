@@ -41,11 +41,11 @@ func menu() bool {
 		for index, element := range outputMenuStart {
 			if index < outputLimit[0] {
 				infoFont.Println(element)
-				continue
 			} else if selected == index {
-				focusFont.Print("> ")
+				focusFont.Println("> " + element)
+			} else {
+				fmt.Println(element)
 			}
-			focusFont.Println(element)
 		}
 	}
 
@@ -121,9 +121,10 @@ func newGameMenu() bool {
 				infoFont.Println(element)
 				continue
 			} else if selected == index {
-				focusFont.Print("> ")
+				focusFont.Print("> " + element)
+			} else {
+				fmt.Print(element)
 			}
-			focusFont.Print(element)
 			tmpPos := index - outputLimit[0]
 			tmpLen := len(scrollOptions[tmpPos])
 
