@@ -109,7 +109,7 @@ func newGameMenu() bool {
 	outputMenuOptions := [7]string{"\tChoose game options! (operate with arrows, then press Enter to confirm either Start or Exit)\n", " Shape", " Vector2", " Difficulty", " Clock", " Play", " Exit"}
 
 	/*initialise menu data*/
-	selected := 1
+	selected := 5
 	outputLimit := [2]int{1, 6}
 	gameParam = [4]int{0, 1, 0, 0}
 

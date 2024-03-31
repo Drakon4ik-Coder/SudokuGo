@@ -111,6 +111,10 @@ func (s *BasicSudoku) Init(size, difficulty int) {
 }
 
 func (s *BasicSudoku) Enter(row, col, val int) bool {
+	if s.board[row][col] == s.boardShow[row][col] {
+		return true
+	}
+
 	s.changed = true
 
 	success := true
