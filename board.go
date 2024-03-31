@@ -12,13 +12,13 @@ type SudokuBoard interface {
 	//Get(row, col int) int         // Get value at a specific position
 	//RevealRandom()                // Reveal random box
 	Enter(row, col, val int) bool // Check if the val is the same as in the board
-	//IsComplete() bool             // Check if the board is complete
-	//IsValid() bool                // Check if the board is valid
-	Print(row, col int) // Print the board
-	Display() bool      // Return whether there were any changes since last call of Print
+	IsComplete() bool             // Check if the board is complete
+	Print(row, col int)           // Print the board
+	Display() bool                // Return whether there were any changes since last call of Print
+	GetSize() int                 // Get size of the board
 }
 
-type TwoIntegers struct {
+type Vector2 struct {
 	height int
 	width  int
 }
@@ -27,12 +27,8 @@ type BasicSudoku struct {
 	boardShow [][]int
 	board     [][]int
 	size      int
-	nonetSize TwoIntegers
+	nonetSize Vector2
 	changed   bool
-}
-
-func (s *BasicSudoku) Display() bool {
-	return s.changed
 }
 
 type DiagonalSudoku struct {
@@ -302,7 +298,7 @@ func (s *BasicSudoku) Copy(s2 *BasicSudoku) {
 
 }
 
-func (s *BasicSudoku) CheckGrid() bool {
+func (s *BasicSudoku) IsComplete() bool {
 	for _, line := range s.boardShow {
 		for _, element := range line {
 			if element == 0 {
@@ -311,4 +307,12 @@ func (s *BasicSudoku) CheckGrid() bool {
 		}
 	}
 	return true
+}
+
+func (s *BasicSudoku) Display() bool {
+	return s.changed
+}
+
+func (s *BasicSudoku) GetSize() int {
+	return s.size
 }

@@ -106,7 +106,7 @@ var gameOptions = [][]string{
 
 func newGameMenu() bool {
 	// start menu options with output
-	outputMenuOptions := [7]string{"\tChoose game options! (operate with arrows, then press Enter to confirm either Start or Exit)\n", " Shape", " Size", " Difficulty", " Clock", " Play", " Exit"}
+	outputMenuOptions := [7]string{"\tChoose game options! (operate with arrows, then press Enter to confirm either Start or Exit)\n", " Shape", " Vector2", " Difficulty", " Clock", " Play", " Exit"}
 
 	/*initialise menu data*/
 	selected := 1

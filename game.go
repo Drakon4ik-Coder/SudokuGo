@@ -1,23 +1,41 @@
 package main
 
 import (
+	"github.com/eiannone/keyboard"
 	"strconv"
 	"strings"
 )
 
-func frame() {
-	board.Print(2, 3)
-}
-
-func game() bool {
+func game() {
 	initGame()
-	for {
-		if board.Display() {
+	chosenPos := Vector2{0, 0}
+	posChange := false
+	boardSize := board.GetSize()
+	for !board.IsComplete() {
+		if board.Display() || posChange {
+			posChange = false
 			ClearConsole()
-			frame()
+			board.Print(chosenPos.width, chosenPos.height)
+		}
+		_, key, err := keyboard.GetKey()
+		if err != nil {
+			panic(err)
+		}
+
+		if key == keyboard.KeyArrowUp && chosenPos.width > 0 {
+			chosenPos.width--
+			posChange = true
+		} else if key == keyboard.KeyArrowDown && chosenPos.width < boardSize-1 {
+			chosenPos.width++
+			posChange = true
+		} else if key == keyboard.KeyArrowRight && chosenPos.height < boardSize-1 {
+			chosenPos.height++
+			posChange = true
+		} else if key == keyboard.KeyArrowLeft && chosenPos.height > 0 {
+			chosenPos.height--
+			posChange = true
 		}
 	}
-	return true
 }
 
 var board SudokuBoard
