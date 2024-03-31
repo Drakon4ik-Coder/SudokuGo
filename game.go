@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func game() int {
+func game() bool {
 	initGame()
 	chosenPos := Vector2{0, 0}
 	posChange := false
@@ -34,13 +34,15 @@ func game() int {
 			chosenPos.height--
 		} else if key == keyboard.KeyEsc {
 			ClearConsole()
-			infoFont.Println("Press Esc second time to exit(any other to continue)")
+			infoFont.Println("Press Esc second time to exit or BackSpace to get back to menu(any other to continue)")
 			_, key, err := keyboard.GetKey()
 			if err != nil {
 				panic(err)
 			}
 			if key == keyboard.KeyEsc {
-				return 1
+				return false
+			} else if key == keyboard.KeyBackspace {
+				return true
 			}
 		} else if '1' <= char && char <= '9' && int(char-'0') <= boardSize {
 			board.Enter(chosenPos.width, chosenPos.height, int(char-'0'))
@@ -52,7 +54,23 @@ func game() int {
 			posChange = false
 		}
 	}
-	return 0
+
+	ClearConsole()
+	board.Print(-1, -1)
+
+	infoFont.Println("\nCongrats on finishing sudoku! Press Backspace to get back to menu, Esc to exit")
+
+	for {
+		_, key, err := keyboard.GetKey()
+		if err != nil {
+			panic(err)
+		}
+		if key == keyboard.KeyEsc {
+			return false
+		} else if key == keyboard.KeyBackspace {
+			return true
+		}
+	}
 }
 
 var board SudokuBoard

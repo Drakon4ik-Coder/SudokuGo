@@ -29,8 +29,13 @@ func main() {
 	}
 
 	// enter game if user didn't exit
-	if menu() {
-		game()
+	contin := true
+	for contin {
+		if menu() {
+			contin = game()
+		} else {
+			contin = false
+		}
 	}
 	ClearConsole()
 	infoFont.Print("\tThanks for choosing to play our Sudoku. May you have a blessed day :)")
