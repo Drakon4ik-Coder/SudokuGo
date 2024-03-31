@@ -10,6 +10,7 @@ import (
 var focusFont *color.Color
 var infoFont *color.Color
 var optionFont *color.Color
+var errorFont *color.Color
 
 // init keyboard listening and fonts
 func init() {
@@ -21,6 +22,7 @@ func init() {
 	infoFont = color.New(color.FgCyan)
 	focusFont = color.New(color.FgMagenta)
 	optionFont = color.New(color.FgGreen)
+	errorFont = color.New(color.FgRed)
 }
 
 // create menu and return true if succeeded, false if user exited
@@ -36,7 +38,7 @@ func menu() bool {
 	lastSelected := -1
 
 	// function for drawing frame
-	var Draw func() = func() {
+	Draw := func() {
 		ClearConsole()
 		for index, element := range outputMenuStart {
 			if index < outputLimit[0] {
@@ -115,7 +117,7 @@ func newGameMenu() bool {
 	lastSelected := -1
 
 	// function for drawing frame
-	var Draw func() = func() {
+	Draw := func() {
 		ClearConsole()
 		for index, element := range outputMenuOptions {
 			if index < outputLimit[0] {
