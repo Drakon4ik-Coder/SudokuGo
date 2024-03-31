@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/eiannone/keyboard"
 	"os"
-	"time"
 )
 
 func main() {
@@ -29,12 +28,11 @@ func main() {
 		}
 	}
 
-	// exit if user chose to
-	if !menu() {
-		ClearConsole()
-		infoFont.Print("\tThanks for choosing to play our Sudoku. May you have a blessed day :)")
-		time.Sleep(time.Second * 5)
-		os.Exit(102)
+	// enter game if user didn't exit
+	if menu() {
+		game()
 	}
-	game()
+	ClearConsole()
+	infoFont.Print("\tThanks for choosing to play our Sudoku. May you have a blessed day :)")
+	//time.Sleep(time.Second * 5)
 }

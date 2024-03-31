@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func game() {
+func game() int {
 	initGame()
 	chosenPos := Vector2{0, 0}
 	posChange := false
@@ -17,25 +17,42 @@ func game() {
 			ClearConsole()
 			board.Print(chosenPos.width, chosenPos.height)
 		}
-		_, key, err := keyboard.GetKey()
+		char, key, err := keyboard.GetKey()
 		if err != nil {
 			panic(err)
 		}
 
+		posChange = true
+
 		if key == keyboard.KeyArrowUp && chosenPos.width > 0 {
 			chosenPos.width--
-			posChange = true
 		} else if key == keyboard.KeyArrowDown && chosenPos.width < boardSize-1 {
 			chosenPos.width++
-			posChange = true
 		} else if key == keyboard.KeyArrowRight && chosenPos.height < boardSize-1 {
 			chosenPos.height++
-			posChange = true
 		} else if key == keyboard.KeyArrowLeft && chosenPos.height > 0 {
 			chosenPos.height--
-			posChange = true
+		} else if key == keyboard.KeyEsc {
+			ClearConsole()
+			infoFont.Println("Press Esc second time to exit(any other to continue)")
+			_, key, err := keyboard.GetKey()
+			if err != nil {
+				panic(err)
+			}
+			if key == keyboard.KeyEsc {
+				return 1
+			}
+		} else if '1' <= char && char <= '9' && int(char-'0') <= boardSize {
+			board.Enter(chosenPos.width, chosenPos.height, int(char-'0'))
+		} else if 'a' <= char && char <= 'z' && int(char-'a'+10) <= boardSize {
+			board.Enter(chosenPos.width, chosenPos.height, int(char-'a'+10))
+		} else if 'A' <= char && char <= 'Z' && int(char-'A'+10) <= boardSize {
+			board.Enter(chosenPos.width, chosenPos.height, int(char-'A'+10))
+		} else {
+			posChange = false
 		}
 	}
+	return 0
 }
 
 var board SudokuBoard

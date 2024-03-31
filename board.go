@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 )
 
 type SudokuBoard interface {
@@ -255,7 +256,19 @@ func (s *BasicSudoku) Print(row, col int) {
 	s.changed = false
 	printFont := fmt.Printf
 	for i, line := range s.boardShow {
+		if i%s.nonetSize.width == 0 {
+			if i > 0 {
+				infoFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				infoFont.Println("|")
+			} else {
+				infoFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				infoFont.Println("_")
+			}
+		}
 		for j, element := range line {
+			if j%s.nonetSize.height == 0 {
+				infoFont.Print("| ")
+			}
 			if element != 0 && s.board[i][j] != element {
 				printFont = errorFont.Printf
 			} else if row == i && col == j {
@@ -271,8 +284,11 @@ func (s *BasicSudoku) Print(row, col int) {
 				_, _ = printFont("%d ", element)
 			}
 		}
+		infoFont.Print("|")
 		fmt.Println()
 	}
+	infoFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+	infoFont.Println("|")
 }
 
 func (s *BasicSudoku) Copy(s2 *BasicSudoku) {
