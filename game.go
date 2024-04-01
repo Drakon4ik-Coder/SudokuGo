@@ -88,5 +88,10 @@ func initBoard() {
 		basic := &BasicSudoku{}
 		basic.Init(boardSize, gameParam[2])
 		board = basic
+	case "diagonal":
+		diagonal := &DiagonalSudoku{}
+		diagonal.Init(boardSize, gameParam[2])
+		board = diagonal
+
 	}
 }

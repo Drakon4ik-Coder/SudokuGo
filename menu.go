@@ -11,6 +11,7 @@ var focusFont *color.Color
 var infoFont *color.Color
 var optionFont *color.Color
 var errorFont *color.Color
+var diagonalFont *color.Color
 
 // init keyboard listening and fonts
 func init() {
@@ -23,6 +24,7 @@ func init() {
 	focusFont = color.New(color.FgMagenta)
 	optionFont = color.New(color.FgGreen)
 	errorFont = color.New(color.FgRed)
+	diagonalFont = color.New(color.FgYellow)
 }
 
 // create menu and return true if succeeded, false if user exited

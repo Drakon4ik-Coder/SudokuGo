@@ -109,6 +109,40 @@ func (s *BasicSudoku) Init(size, difficulty int) {
 	s.EmptyGrid(difficulty)
 	print("2")
 }
+func (s *DiagonalSudoku) Init(size, difficulty int) {
+
+	s.changed = true
+
+	// Initialize board with zeros
+	createBoard := func() [][]int {
+		tmp := make([][]int, size)
+		for i := range tmp {
+			tmp[i] = make([]int, size)
+		}
+		return tmp
+	}
+	s.board = createBoard()
+	s.boardShow = createBoard()
+	s.size = size
+	tmpSize := math.Sqrt(float64(size))
+	if tmpSize == math.Trunc(tmpSize) {
+		s.nonetSize.width = int(tmpSize)
+		s.nonetSize.height = int(tmpSize)
+	} else {
+		w, h := findClosestFactors(size)
+		s.nonetSize.width = w
+		s.nonetSize.height = h
+	}
+	s.FillSudoku(0)
+	for i := 0; i < s.size; i++ {
+		for j := 0; j < s.size; j++ {
+			s.boardShow[i][j] = s.board[i][j]
+		}
+	}
+
+	s.EmptyGrid(difficulty)
+	print("2")
+}
 
 func (s *BasicSudoku) Enter(row, col, val int) bool {
 	if s.board[row][col] == s.boardShow[row][col] {
@@ -126,6 +160,31 @@ func (s *BasicSudoku) Enter(row, col, val int) bool {
 }
 
 func (s *BasicSudoku) FillSudoku(position int) bool {
+	if position == s.size*s.size {
+		return true
+	}
+	x := position / s.size
+	y := position % s.size
+	if s.board[x][y] != 0 {
+		return s.FillSudoku(position + 1)
+	}
+
+	available := s.AvailableNum(position, s.board)
+	lenAvailable := len(available)
+	if lenAvailable == 0 {
+		return false
+	}
+
+	for i := 0; i < lenAvailable; i++ {
+		s.board[x][y] = available[i]
+		if s.FillSudoku(position + 1) {
+			return true
+		}
+	}
+	s.board[x][y] = 0
+	return false
+}
+func (s *DiagonalSudoku) FillSudoku(position int) bool {
 	if position == s.size*s.size {
 		return true
 	}
@@ -202,6 +261,75 @@ func (s *BasicSudoku) AvailableNum(position int, board [][]int) []int {
 
 	return available
 }
+func (s *DiagonalSudoku) AvailableNum(position int, board [][]int) []int {
+	x := position / s.size
+	y := position % s.size
+
+	contains := func(slice []int, value int) bool {
+		for _, item := range slice {
+			if item == value {
+				return true
+			}
+		}
+		return false
+	}
+
+	taken := []int{}
+
+	nonetStart := [2]int{x - x%s.nonetSize.width, y - y%s.nonetSize.height}
+	for i := 0; i < s.nonetSize.width; i++ {
+		for j := 0; j < s.nonetSize.height; j++ {
+			tmp := board[nonetStart[0]+i][nonetStart[1]+j]
+			if tmp != 0 && !contains(taken, tmp) {
+				taken = append(taken, tmp)
+			}
+		}
+	}
+
+	for i := 0; i < s.size; i++ {
+		tmpHorizontal := board[i][y]
+		if tmpHorizontal != 0 && !contains(taken, tmpHorizontal) {
+			taken = append(taken, tmpHorizontal)
+		}
+		tmpVertical := board[x][i]
+		if tmpVertical != 0 && !contains(taken, tmpVertical) {
+			taken = append(taken, tmpVertical)
+		}
+	}
+
+	if x == y {
+		for i := 0; i < s.size; i++ {
+			tmpLeftDiagonal := board[i][i]
+			if tmpLeftDiagonal != 0 && !contains(taken, tmpLeftDiagonal) {
+				taken = append(taken, tmpLeftDiagonal)
+			}
+		}
+	}
+
+	if x == s.size-y-1 {
+		for i := 0; i < s.size; i++ {
+			tmpRightDiagonal := board[s.size-i-1][i]
+			if tmpRightDiagonal != 0 && !contains(taken, tmpRightDiagonal) {
+				taken = append(taken, tmpRightDiagonal)
+			}
+		}
+	}
+
+	var available []int
+
+	for i := 1; i <= s.size; i++ {
+		if !contains(taken, i) {
+			available = append(available, i)
+		}
+	}
+
+	for i := range available {
+		j := rand.Intn(i + 1)
+		available[i], available[j] = available[j], available[i]
+	}
+
+	return available
+}
 
 var solutions int
 
@@ -229,8 +357,57 @@ func (s *BasicSudoku) EmptyGrid(difficulty int) {
 	}
 
 }
+func (s *DiagonalSudoku) EmptyGrid(difficulty int) {
+	attempts := (difficulty + 1) * 3
+	copyGrid := DiagonalSudoku{}
+
+	for attempts > 0 {
+		row, col := rand.Intn(s.size), rand.Intn(s.size)
+		for s.boardShow[row][col] == 0 {
+			row, col = rand.Intn(s.size), rand.Intn(s.size)
+		}
+
+		copyGrid.Copy(s)
+		solutions = 0
+		copyGrid.boardShow[row][col] = 0
+
+		copyGrid.SolveGrid(0)
+
+		if solutions != 1 {
+			attempts--
+		} else {
+			s.boardShow[row][col] = 0
+		}
+	}
+
+}
 
 func (s *BasicSudoku) SolveGrid(position int) {
+	if position == s.size*s.size {
+		solutions++
+		return
+	}
+
+	x := position / s.size
+	y := position % s.size
+
+	if s.boardShow[x][y] != 0 {
+		s.SolveGrid(position + 1)
+		return
+	}
+
+	available := s.AvailableNum(position, s.boardShow)
+	lenAvailable := len(available)
+
+	for i := 0; i < lenAvailable; i++ {
+		s.boardShow[x][y] = available[i]
+		s.SolveGrid(position + 1)
+	}
+
+	s.boardShow[x][y] = 0
+	return
+}
+func (s *DiagonalSudoku) SolveGrid(position int) {
 	if position == s.size*s.size {
 		solutions++
 		return
@@ -294,8 +471,71 @@ func (s *BasicSudoku) Print(row, col int) {
 	infoFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
 	infoFont.Println("|")
 }
+func (s *DiagonalSudoku) Print(row, col int) {
+	s.changed = false
+	printFont := fmt.Printf
+	for i, line := range s.boardShow {
+		if i%s.nonetSize.width == 0 {
+			if i > 0 {
+				infoFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				infoFont.Println("|")
+			} else {
+				infoFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				infoFont.Println("_")
+			}
+		}
+		for j, element := range line {
+			if j%s.nonetSize.height == 0 {
+				infoFont.Print("| ")
+			}
+			if element != 0 && s.board[i][j] != element {
+				printFont = errorFont.Printf
+			} else if row == i && col == j {
+				printFont = focusFont.Printf
+			} else if i == j || i == s.size-j-1 {
+				printFont = diagonalFont.Printf
+			} else if element != 0 {
+				printFont = optionFont.Printf
+			}
+			if element == 0 && !(row == i && col == j) {
+				printFont = fmt.Printf
+			}
+			if element > 9 {
+				_, _ = printFont("%c ", 'A'+(element-10))
+			} else {
+				_, _ = printFont("%d ", element)
+			}
+		}
+		infoFont.Print("|")
+		fmt.Println()
+	}
+	infoFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+	infoFont.Println("|")
+}
 
 func (s *BasicSudoku) Copy(s2 *BasicSudoku) {
+	s.size = s2.size
+	s.nonetSize = s2.nonetSize
+
+	createBoard := func() [][]int {
+		tmp := make([][]int, s.size)
+		for i := range tmp {
+			tmp[i] = make([]int, s.size)
+		}
+		return tmp
+	}
+	s.board = createBoard()
+	s.boardShow = createBoard()
+
+	for i := 0; i < s.size; i++ {
+		for j := 0; j < s.size; j++ {
+			s.board[i][j] = s2.board[i][j]
+			s.boardShow[i][j] = s2.boardShow[i][j]
+		}
+	}
+
+}
+func (s *DiagonalSudoku) Copy(s2 *DiagonalSudoku) {
 	s.size = s2.size
 	s.nonetSize = s2.nonetSize
 
