@@ -38,6 +38,6 @@ func main() {
 		}
 	}
 	ClearConsole()
-	infoFont.Print("\tThanks for choosing to play our Sudoku. May you have a blessed day :)")
+	blueFont.Print("\tThanks for choosing to play our Sudoku. May you have a blessed day :)")
 	//time.Sleep(time.Second * 5)
 }

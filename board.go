@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"strings"
+	"time"
 )
 
 type SudokuBoard interface {
@@ -334,10 +335,13 @@ func (s *DiagonalSudoku) AvailableNum(position int, board [][]int) []int {
 var solutions int
 
 func (s *BasicSudoku) EmptyGrid(difficulty int) {
-	attempts := (difficulty + 1) * 3
+	emptyFinal := (difficulty + 1) * 25
 	copyGrid := BasicSudoku{}
+	finished := false
+	empty := 0
+	startTime := time.Now()
 
-	for attempts > 0 {
+	for !finished {
 		row, col := rand.Intn(s.size), rand.Intn(s.size)
 		for s.boardShow[row][col] == 0 {
 			row, col = rand.Intn(s.size), rand.Intn(s.size)
@@ -349,19 +353,26 @@ func (s *BasicSudoku) EmptyGrid(difficulty int) {
 
 		copyGrid.SolveGrid(0)
 
-		if solutions != 1 {
-			attempts--
-		} else {
+		if solutions == 1 {
 			s.boardShow[row][col] = 0
+			empty++
 		}
+
+		if 100*empty/(s.size*s.size) > emptyFinal || time.Since(startTime).Seconds() > 2 {
+			finished = true
+		}
+
 	}
 
 }
 func (s *DiagonalSudoku) EmptyGrid(difficulty int) {
-	attempts := (difficulty + 1) * 3
+	emptyFinal := (difficulty + 1) * 25
 	copyGrid := DiagonalSudoku{}
+	finished := false
+	empty := 0
+	startTime := time.Now()
 
-	for attempts > 0 {
+	for !finished {
 		row, col := rand.Intn(s.size), rand.Intn(s.size)
 		for s.boardShow[row][col] == 0 {
 			row, col = rand.Intn(s.size), rand.Intn(s.size)
@@ -373,11 +384,15 @@ func (s *DiagonalSudoku) EmptyGrid(difficulty int) {
 
 		copyGrid.SolveGrid(0)
 
-		if solutions != 1 {
-			attempts--
-		} else {
+		if solutions == 1 {
 			s.boardShow[row][col] = 0
+			empty++
 		}
+
+		if 100*empty/(s.size*s.size) > emptyFinal || time.Since(startTime).Seconds() > 2 {
+			finished = true
+		}
+
 	}
 
 }
@@ -433,29 +448,40 @@ func (s *DiagonalSudoku) SolveGrid(position int) {
 	return
 }
 
+func SudokuPrint() {
+	blueFont.Println("Move with arrows, enter with numbers 1-9(and A-C, depending on board size)")
+	greenFont.Print("Green")
+	blueFont.Println(" - solved")
+	redFont.Print("Red")
+	blueFont.Println(" - incorrect")
+	purpleFont.Print("Purple")
+	blueFont.Println(" - cursor")
+}
+
 func (s *BasicSudoku) Print(row, col int) {
+	SudokuPrint()
 	s.changed = false
 	printFont := fmt.Printf
 	for i, line := range s.boardShow {
 		if i%s.nonetSize.width == 0 {
 			if i > 0 {
-				infoFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
-				infoFont.Println("|")
+				blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				blueFont.Println("|")
 			} else {
-				infoFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
-				infoFont.Println("_")
+				blueFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				blueFont.Println("_")
 			}
 		}
 		for j, element := range line {
 			if j%s.nonetSize.height == 0 {
-				infoFont.Print("| ")
+				blueFont.Print("| ")
 			}
 			if element != 0 && s.board[i][j] != element {
-				printFont = errorFont.Printf
+				printFont = redFont.Printf
 			} else if row == i && col == j {
-				printFont = focusFont.Printf
+				printFont = purpleFont.Printf
 			} else if element != 0 {
-				printFont = optionFont.Printf
+				printFont = greenFont.Printf
 			} else {
 				printFont = fmt.Printf
 			}
@@ -465,39 +491,42 @@ func (s *BasicSudoku) Print(row, col int) {
 				_, _ = printFont("%d ", element)
 			}
 		}
-		infoFont.Print("|")
+		blueFont.Print("|")
 		fmt.Println()
 	}
-	infoFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
-	infoFont.Println("|")
+	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+	blueFont.Println("|")
 }
 func (s *DiagonalSudoku) Print(row, col int) {
+	SudokuPrint()
+	diagonalFont.Print("Yellow")
+	blueFont.Println(" - correct diagonal")
+
 	s.changed = false
 	printFont := fmt.Printf
 	for i, line := range s.boardShow {
 		if i%s.nonetSize.width == 0 {
 			if i > 0 {
-				infoFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
-				infoFont.Println("|")
+				blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				blueFont.Println("|")
 			} else {
-				infoFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
-				infoFont.Println("_")
+				blueFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				blueFont.Println("_")
 			}
 		}
 		for j, element := range line {
 			if j%s.nonetSize.height == 0 {
-				infoFont.Print("| ")
+				blueFont.Print("| ")
 			}
 			if element != 0 && s.board[i][j] != element {
-				printFont = errorFont.Printf
+				printFont = redFont.Printf
 			} else if row == i && col == j {
-				printFont = focusFont.Printf
-			} else if i == j || i == s.size-j-1 {
+				printFont = purpleFont.Printf
+			} else if (i == j || i == s.size-j-1) && element != 0 {
 				printFont = diagonalFont.Printf
 			} else if element != 0 {
-				printFont = optionFont.Printf
-			}
-			if element == 0 && !(row == i && col == j) {
+				printFont = greenFont.Printf
+			} else {
 				printFont = fmt.Printf
 			}
 			if element > 9 {
@@ -506,11 +535,11 @@ func (s *DiagonalSudoku) Print(row, col int) {
 				_, _ = printFont("%d ", element)
 			}
 		}
-		infoFont.Print("|")
+		blueFont.Print("|")
 		fmt.Println()
 	}
-	infoFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
-	infoFont.Println("|")
+	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+	blueFont.Println("|")
 }
 
 func (s *BasicSudoku) Copy(s2 *BasicSudoku) {

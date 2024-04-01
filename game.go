@@ -34,7 +34,7 @@ func game() bool {
 			chosenPos.height--
 		} else if key == keyboard.KeyEsc {
 			ClearConsole()
-			infoFont.Println("Press Esc second time to exit or BackSpace to get back to menu(any other to continue)")
+			blueFont.Println("Press Esc second time to exit or BackSpace to get back to menu(any other to continue)")
 			_, key, err := keyboard.GetKey()
 			if err != nil {
 				panic(err)
@@ -58,7 +58,7 @@ func game() bool {
 	ClearConsole()
 	board.Print(-1, -1)
 
-	infoFont.Println("\nCongrats on finishing sudoku! Press Backspace to get back to menu, Esc to exit")
+	blueFont.Println("\nCongrats on finishing sudoku! Press Backspace to get back to menu, Esc to exit")
 
 	for {
 		_, key, err := keyboard.GetKey()

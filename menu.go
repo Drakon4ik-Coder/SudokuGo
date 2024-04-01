@@ -7,10 +7,10 @@ import (
 )
 
 // fonts for highlighting
-var focusFont *color.Color
-var infoFont *color.Color
-var optionFont *color.Color
-var errorFont *color.Color
+var purpleFont *color.Color
+var blueFont *color.Color
+var greenFont *color.Color
+var redFont *color.Color
 var diagonalFont *color.Color
 
 // init keyboard listening and fonts
@@ -20,10 +20,10 @@ func init() {
 		panic(err)
 	}
 
-	infoFont = color.New(color.FgCyan)
-	focusFont = color.New(color.FgMagenta)
-	optionFont = color.New(color.FgGreen)
-	errorFont = color.New(color.FgRed)
+	blueFont = color.New(color.FgCyan)
+	purpleFont = color.New(color.FgMagenta)
+	greenFont = color.New(color.FgGreen)
+	redFont = color.New(color.FgRed)
 	diagonalFont = color.New(color.FgYellow)
 }
 
@@ -44,9 +44,9 @@ func menu() bool {
 		ClearConsole()
 		for index, element := range outputMenuStart {
 			if index < outputLimit[0] {
-				infoFont.Println(element)
+				blueFont.Println(element)
 			} else if selected == index {
-				focusFont.Println("> " + element)
+				purpleFont.Println("> " + element)
 			} else {
 				fmt.Println(element)
 			}
@@ -123,10 +123,10 @@ func newGameMenu() bool {
 		ClearConsole()
 		for index, element := range outputMenuOptions {
 			if index < outputLimit[0] {
-				infoFont.Println(element)
+				blueFont.Println(element)
 				continue
 			} else if selected == index {
-				focusFont.Print("> " + element)
+				purpleFont.Print("> " + element)
 			} else {
 				fmt.Print(element)
 			}
@@ -134,7 +134,7 @@ func newGameMenu() bool {
 			tmpLen := len(gameOptions[tmpPos])
 
 			if tmpLen > 0 {
-				optionFont.Print(" < " + gameOptions[tmpPos][gameParam[tmpPos]] + " >")
+				greenFont.Print(" < " + gameOptions[tmpPos][gameParam[tmpPos]] + " >")
 			}
 			fmt.Println()
 		}
