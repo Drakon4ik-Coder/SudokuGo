@@ -8,6 +8,9 @@ import (
 
 func game() bool {
 	initGame()
+	if showRules() {
+		return true
+	}
 	chosenPos := Vector2{0, 0}
 	posChange := false
 	boardSize := board.GetSize()
@@ -15,6 +18,7 @@ func game() bool {
 		if board.Display() || posChange {
 			posChange = false
 			ClearConsole()
+			blueFont.Println("Press Esc to exit")
 			board.Print(chosenPos.width, chosenPos.height)
 		}
 		char, key, err := keyboard.GetKey()
@@ -66,6 +70,23 @@ func game() bool {
 			panic(err)
 		}
 		if key == keyboard.KeyEsc {
+			return false
+		} else if key == keyboard.KeyBackspace {
+			return true
+		}
+	}
+}
+
+func showRules() bool {
+	ClearConsole()
+	blueFont.Println(board.Rules())
+	blueFont.Println("Press Enter to continue. Backspace to return to menu")
+	for {
+		_, key, err := keyboard.GetKey()
+		if err != nil {
+			panic(err)
+		}
+		if key == keyboard.KeyEnter {
 			return false
 		} else if key == keyboard.KeyBackspace {
 			return true

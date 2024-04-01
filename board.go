@@ -17,7 +17,8 @@ type SudokuBoard interface {
 	IsComplete() bool             // Check if the board is complete
 	Print(row, col int)           // Print the board
 	Display() bool                // Return whether there were any changes since last call of Print
-	GetSize() int                 // Get size of the board
+	GetSize() int
+	Rules() string // Get size of the board
 }
 
 type Vector2 struct {
@@ -604,4 +605,17 @@ func (s *BasicSudoku) Display() bool {
 
 func (s *BasicSudoku) GetSize() int {
 	return s.size
+}
+
+func (s *BasicSudoku) Rules() string {
+	return "Sudoku is played on a 9x9(or other sizes) grid where each row, column,\n" +
+		"and 3x3(can differ) region must contain all digits from 1 to 9(possibly up to C) without repetition.\n" +
+		"Use logic to fill in the empty cells based on the filled cells.\n" +
+		"No guessing is allowed, and each puzzle has exactly one unique solution."
+}
+func (s *DiagonalSudoku) Rules() string {
+	return "Diagonal Sudoku is played on a 9x9 grid where each row, column, diagonal\n" +
+		"and 3x3 region must contain all digits from 1 to 9 without repetition.\n" +
+		"Use logic to fill in the empty cells based on the filled cells.\n" +
+		"No guessing is allowed, and each puzzle has exactly one unique solution."
 }
