@@ -588,9 +588,9 @@ func (s *DiagonalSudoku) Copy(s2 *DiagonalSudoku) {
 }
 
 func (s *BasicSudoku) IsComplete() bool {
-	for _, line := range s.boardShow {
-		for _, element := range line {
-			if element == 0 {
+	for i, line := range s.boardShow {
+		for j, element := range line {
+			if element == 0 || s.board[i][j] != element {
 				return false
 			}
 		}
