@@ -108,12 +108,12 @@ var gameOptions = [][]string{
 
 func newGameMenu() bool {
 	// start menu options with output
-	outputMenuOptions := [7]string{"\tChoose game options! (operate with arrows, then press Enter to confirm either Start or Exit)\n", " Shape", " Vector2", " Difficulty", " Clock", " Play", " Exit"}
+	outputMenuOptions := [7]string{"Choose game options! (operate with arrows, then press Enter to confirm either Start or Exit)\n", "Shape", "Size", "Difficulty", "Clock", "Play", "Exit"}
 
 	/*initialise menu data*/
 	selected := 5
 	outputLimit := [2]int{1, 6}
-	gameParam = [4]int{0, 1, 0, 0}
+	gameParam = [4]int{2, 1, 0, 0}
 
 	// check if option was changed since last print
 	lastSelected := -1
@@ -134,7 +134,11 @@ func newGameMenu() bool {
 			tmpLen := len(gameOptions[tmpPos])
 
 			if tmpLen > 0 {
-				greenFont.Print(" < " + gameOptions[tmpPos][gameParam[tmpPos]] + " >")
+				if element == "Size" && gameParam[0] != 0 {
+					greenFont.Print(" < 9x9 >")
+				} else {
+					greenFont.Print(" < " + gameOptions[tmpPos][gameParam[tmpPos]] + " >")
+				}
 			}
 			fmt.Println()
 		}
@@ -154,7 +158,7 @@ func newGameMenu() bool {
 			selected--
 		} else if key == keyboard.KeyArrowDown && selected < outputLimit[1] {
 			selected++
-		} else if key == keyboard.KeyArrowRight {
+		} else if key == keyboard.KeyArrowRight && !(gameParam[0] != 0 && selected == 2) {
 			// position in gameOptions and gameParam
 			tmpPos := selected - outputLimit[0]
 			// number of scroll options
@@ -168,7 +172,7 @@ func newGameMenu() bool {
 				lastSelected = -1
 			}
 
-		} else if key == keyboard.KeyArrowLeft {
+		} else if key == keyboard.KeyArrowLeft && !(gameParam[0] != 0 && selected == 2) {
 			// position in gameOptions and gameParam
 			tmpPos := selected - outputLimit[0]
 			// number of scroll options

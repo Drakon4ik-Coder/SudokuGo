@@ -11,31 +11,28 @@ func game() bool {
 	if showRules() {
 		return true
 	}
-	chosenPos := Vector2{0, 0}
-	posChange := false
-	boardSize := board.GetSize()
-	for !board.IsComplete() {
-		if board.Display() || posChange {
-			posChange = false
+	for {
+		if board.Display() {
 			ClearConsole()
 			blueFont.Println("Press Esc to exit")
-			board.Print(chosenPos.width, chosenPos.height)
+			board.Print()
+			if board.IsComplete() {
+				break
+			}
 		}
 		char, key, err := keyboard.GetKey()
 		if err != nil {
 			panic(err)
 		}
 
-		posChange = true
-
-		if key == keyboard.KeyArrowUp && chosenPos.width > 0 {
-			chosenPos.width--
-		} else if key == keyboard.KeyArrowDown && chosenPos.width < boardSize-1 {
-			chosenPos.width++
-		} else if key == keyboard.KeyArrowRight && chosenPos.height < boardSize-1 {
-			chosenPos.height++
-		} else if key == keyboard.KeyArrowLeft && chosenPos.height > 0 {
-			chosenPos.height--
+		if key == keyboard.KeyArrowUp {
+			board.Move(0, -1)
+		} else if key == keyboard.KeyArrowDown {
+			board.Move(0, 1)
+		} else if key == keyboard.KeyArrowRight {
+			board.Move(1, 0)
+		} else if key == keyboard.KeyArrowLeft {
+			board.Move(-1, 0)
 		} else if key == keyboard.KeyEsc {
 			ClearConsole()
 			blueFont.Println("Press Esc second time to exit or BackSpace to get back to menu(any other to continue)")
@@ -48,19 +45,17 @@ func game() bool {
 			} else if key == keyboard.KeyBackspace {
 				return true
 			}
-		} else if '1' <= char && char <= '9' && int(char-'0') <= boardSize {
-			board.Enter(chosenPos.width, chosenPos.height, int(char-'0'))
-		} else if 'a' <= char && char <= 'z' && int(char-'a'+10) <= boardSize {
-			board.Enter(chosenPos.width, chosenPos.height, int(char-'a'+10))
-		} else if 'A' <= char && char <= 'Z' && int(char-'A'+10) <= boardSize {
-			board.Enter(chosenPos.width, chosenPos.height, int(char-'A'+10))
-		} else {
-			posChange = false
+		} else if '1' <= char && char <= '9' {
+			board.Enter(int(char - '0'))
+		} else if 'a' <= char && char <= 'z' {
+			board.Enter(int(char - 'a' + 10))
+		} else if 'A' <= char && char <= 'Z' {
+			board.Enter(int(char - 'A' + 10))
 		}
 	}
 
 	ClearConsole()
-	board.Print(-1, -1)
+	board.Print()
 
 	blueFont.Println("\nCongrats on finishing sudoku! Press Backspace to get back to menu, Esc to exit")
 
@@ -111,8 +106,11 @@ func initBoard() {
 		board = basic
 	case "diagonal":
 		diagonal := &DiagonalSudoku{}
-		diagonal.Init(boardSize, gameParam[2])
+		diagonal.Init(9, gameParam[2])
 		board = diagonal
-
+	case "twodoku":
+		twodoku := &TwoDoku{}
+		twodoku.Init(9, gameParam[2])
+		board = twodoku
 	}
 }

@@ -9,21 +9,18 @@ import (
 )
 
 type SudokuBoard interface {
-	//Init(size int)                // Initialize the board
-	//Set(row, col, val int) bool   // Set value at a specific position
-	//Get(row, col int) int         // Get value at a specific position
 	//RevealRandom()                // Reveal random box
-	Enter(row, col, val int) bool // Check if the val is the same as in the board
-	IsComplete() bool             // Check if the board is complete
-	Print(row, col int)           // Print the board
-	Display() bool                // Return whether there were any changes since last call of Print
-	GetSize() int
-	Rules() string // Get size of the board
+	Enter(val int) bool // Check if the val is the same as in the board
+	IsComplete() bool   // Check if the board is complete
+	Print()             // Print the board
+	Move(col, row int)  // Move the cursor if possible
+	Rules() string      // Return rules of sudoku
+	Display() bool      // Return whether there were any changes since last call of Print
 }
 
 type Vector2 struct {
-	height int
-	width  int
+	x int
+	y int
 }
 
 type BasicSudoku struct {
@@ -32,6 +29,7 @@ type BasicSudoku struct {
 	size      int
 	nonetSize Vector2
 	changed   bool
+	cursorPos Vector2
 }
 
 type DiagonalSudoku struct {
@@ -39,9 +37,8 @@ type DiagonalSudoku struct {
 }
 
 type TwoDoku struct {
-	// two boards matrices are stored in three-dimensional array
-	board1 BasicSudoku
-	board2 BasicSudoku
+	boardMain BasicSudoku
+	boardAdd  BasicSudoku
 }
 
 type TriangularSudoku struct {
@@ -77,8 +74,7 @@ func findClosestFactors(x int) (int, int) {
 	return a, x / a
 }
 
-func (s *BasicSudoku) Init(size, difficulty int) {
-
+func (s *BasicSudoku) PreInit(size int) {
 	s.changed = true
 
 	// Initialize board with zeros
@@ -94,13 +90,22 @@ func (s *BasicSudoku) Init(size, difficulty int) {
 	s.size = size
 	tmpSize := math.Sqrt(float64(size))
 	if tmpSize == math.Trunc(tmpSize) {
-		s.nonetSize.width = int(tmpSize)
-		s.nonetSize.height = int(tmpSize)
+		s.nonetSize.x = int(tmpSize)
+		s.nonetSize.y = int(tmpSize)
 	} else {
 		w, h := findClosestFactors(size)
-		s.nonetSize.width = w
-		s.nonetSize.height = h
+		s.nonetSize.x = w
+		s.nonetSize.y = h
 	}
+
+	s.cursorPos = Vector2{0, 0}
+
+}
+
+func (s *BasicSudoku) Init(size, difficulty int) {
+
+	s.PreInit(size)
+
 	s.FillSudoku(0)
 	for i := 0; i < s.size; i++ {
 		for j := 0; j < s.size; j++ {
@@ -109,32 +114,11 @@ func (s *BasicSudoku) Init(size, difficulty int) {
 	}
 
 	s.EmptyGrid(difficulty)
-	print("2")
 }
 func (s *DiagonalSudoku) Init(size, difficulty int) {
 
-	s.changed = true
+	s.PreInit(size)
 
-	// Initialize board with zeros
-	createBoard := func() [][]int {
-		tmp := make([][]int, size)
-		for i := range tmp {
-			tmp[i] = make([]int, size)
-		}
-		return tmp
-	}
-	s.board = createBoard()
-	s.boardShow = createBoard()
-	s.size = size
-	tmpSize := math.Sqrt(float64(size))
-	if tmpSize == math.Trunc(tmpSize) {
-		s.nonetSize.width = int(tmpSize)
-		s.nonetSize.height = int(tmpSize)
-	} else {
-		w, h := findClosestFactors(size)
-		s.nonetSize.width = w
-		s.nonetSize.height = h
-	}
 	s.FillSudoku(0)
 	for i := 0; i < s.size; i++ {
 		for j := 0; j < s.size; j++ {
@@ -143,22 +127,59 @@ func (s *DiagonalSudoku) Init(size, difficulty int) {
 	}
 
 	s.EmptyGrid(difficulty)
-	print("2")
+}
+func (s *TwoDoku) Init(size, difficulty int) {
+
+	s.boardMain.PreInit(size)
+	s.boardAdd.PreInit(size)
+	s.boardAdd.cursorPos = Vector2{-1, -1}
+
+	FinishInit := func(board BasicSudoku) {
+		board.FillSudoku(0)
+		for i := 0; i < size; i++ {
+			for j := 0; j < size; j++ {
+				board.boardShow[i][j] = board.board[i][j]
+			}
+		}
+		board.EmptyGrid(difficulty)
+	}
+	FinishInit(s.boardMain)
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			s.boardAdd.board[i][j] = s.boardMain.board[i+6][j+6]
+		}
+	}
+	FinishInit(s.boardAdd)
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			s.boardAdd.boardShow[i][j] = s.boardMain.boardShow[i+6][j+6]
+		}
+	}
 }
 
-func (s *BasicSudoku) Enter(row, col, val int) bool {
-	if s.board[row][col] == s.boardShow[row][col] {
+func (s *BasicSudoku) Enter(val int) bool {
+	if val > s.size || s.board[s.cursorPos.x][s.cursorPos.y] == s.boardShow[s.cursorPos.x][s.cursorPos.y] {
 		return true
 	}
 
 	s.changed = true
 
 	success := true
-	if s.board[row][col] != val {
+	if s.board[s.cursorPos.x][s.cursorPos.y] != val {
 		success = false
 	}
-	s.boardShow[row][col] = val
+	s.boardShow[s.cursorPos.x][s.cursorPos.y] = val
 	return success
+}
+func (s *TwoDoku) Enter(val int) bool {
+	if s.boardAdd.cursorPos.x == -1 {
+		return s.boardMain.Enter(val)
+	} else if s.boardMain.cursorPos.x == -1 {
+		return s.boardAdd.Enter(val)
+	} else {
+		s.boardAdd.Enter(val)
+		return s.boardMain.Enter(val)
+	}
 }
 
 func (s *BasicSudoku) FillSudoku(position int) bool {
@@ -227,9 +248,9 @@ func (s *BasicSudoku) AvailableNum(position int, board [][]int) []int {
 
 	taken := []int{}
 
-	nonetStart := [2]int{x - x%s.nonetSize.width, y - y%s.nonetSize.height}
-	for i := 0; i < s.nonetSize.width; i++ {
-		for j := 0; j < s.nonetSize.height; j++ {
+	nonetStart := [2]int{x - x%s.nonetSize.x, y - y%s.nonetSize.y}
+	for i := 0; i < s.nonetSize.x; i++ {
+		for j := 0; j < s.nonetSize.y; j++ {
 			tmp := board[nonetStart[0]+i][nonetStart[1]+j]
 			if tmp != 0 && !contains(taken, tmp) {
 				taken = append(taken, tmp)
@@ -278,9 +299,9 @@ func (s *DiagonalSudoku) AvailableNum(position int, board [][]int) []int {
 
 	taken := []int{}
 
-	nonetStart := [2]int{x - x%s.nonetSize.width, y - y%s.nonetSize.height}
-	for i := 0; i < s.nonetSize.width; i++ {
-		for j := 0; j < s.nonetSize.height; j++ {
+	nonetStart := [2]int{x - x%s.nonetSize.x, y - y%s.nonetSize.y}
+	for i := 0; i < s.nonetSize.x; i++ {
+		for j := 0; j < s.nonetSize.y; j++ {
 			tmp := board[nonetStart[0]+i][nonetStart[1]+j]
 			if tmp != 0 && !contains(taken, tmp) {
 				taken = append(taken, tmp)
@@ -449,7 +470,7 @@ func (s *DiagonalSudoku) SolveGrid(position int) {
 	return
 }
 
-func SudokuPrint() {
+func SudokuPrintManual() {
 	blueFont.Println("Move with arrows, enter with numbers 1-9(and A-C, depending on board size)")
 	greenFont.Print("Green")
 	blueFont.Println(" - solved")
@@ -459,27 +480,30 @@ func SudokuPrint() {
 	blueFont.Println(" - cursor")
 }
 
-func (s *BasicSudoku) Print(row, col int) {
-	SudokuPrint()
+func (s *BasicSudoku) Print() {
+	if !s.changed {
+		return
+	}
+	SudokuPrintManual()
 	s.changed = false
 	printFont := fmt.Printf
 	for i, line := range s.boardShow {
-		if i%s.nonetSize.width == 0 {
+		if i%s.nonetSize.x == 0 {
 			if i > 0 {
-				blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.y*2+1), s.size/s.nonetSize.y))
 				blueFont.Println("|")
 			} else {
-				blueFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				blueFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.y*2+1), s.size/s.nonetSize.y))
 				blueFont.Println("_")
 			}
 		}
 		for j, element := range line {
-			if j%s.nonetSize.height == 0 {
+			if j%s.nonetSize.y == 0 {
 				blueFont.Print("| ")
 			}
 			if element != 0 && s.board[i][j] != element {
 				printFont = redFont.Printf
-			} else if row == i && col == j {
+			} else if s.cursorPos.x == i && s.cursorPos.y == j {
 				printFont = purpleFont.Printf
 			} else if element != 0 {
 				printFont = greenFont.Printf
@@ -495,33 +519,36 @@ func (s *BasicSudoku) Print(row, col int) {
 		blueFont.Print("|")
 		fmt.Println()
 	}
-	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.y*2+1), s.size/s.nonetSize.y))
 	blueFont.Println("|")
 }
-func (s *DiagonalSudoku) Print(row, col int) {
-	SudokuPrint()
+func (s *DiagonalSudoku) Print() {
+	if !s.changed {
+		return
+	}
+	SudokuPrintManual()
 	diagonalFont.Print("Yellow")
 	blueFont.Println(" - correct diagonal")
 
 	s.changed = false
 	printFont := fmt.Printf
 	for i, line := range s.boardShow {
-		if i%s.nonetSize.width == 0 {
+		if i%s.nonetSize.x == 0 {
 			if i > 0 {
-				blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.y*2+1), s.size/s.nonetSize.y))
 				blueFont.Println("|")
 			} else {
-				blueFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+				blueFont.Print(strings.Repeat("_"+strings.Repeat("_", s.nonetSize.y*2+1), s.size/s.nonetSize.y))
 				blueFont.Println("_")
 			}
 		}
 		for j, element := range line {
-			if j%s.nonetSize.height == 0 {
+			if j%s.nonetSize.y == 0 {
 				blueFont.Print("| ")
 			}
 			if element != 0 && s.board[i][j] != element {
 				printFont = redFont.Printf
-			} else if row == i && col == j {
+			} else if s.cursorPos.x == i && s.cursorPos.y == j {
 				printFont = purpleFont.Printf
 			} else if (i == j || i == s.size-j-1) && element != 0 {
 				printFont = diagonalFont.Printf
@@ -539,7 +566,110 @@ func (s *DiagonalSudoku) Print(row, col int) {
 		blueFont.Print("|")
 		fmt.Println()
 	}
-	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.height*2+1), s.size/s.nonetSize.height))
+	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.y*2+1), s.size/s.nonetSize.y))
+	blueFont.Println("|")
+}
+func (s *TwoDoku) Print() {
+	if !s.boardMain.changed && !s.boardAdd.changed {
+		return
+	}
+	SudokuPrintManual()
+	s.boardMain.changed = false
+	s.boardAdd.changed = false
+	printFont := fmt.Printf
+	for i := 0; i < 6; i++ {
+		if i%3 == 0 {
+			if i > 0 {
+				blueFont.Print(strings.Repeat("|_______", 3))
+				blueFont.Println("|")
+			} else {
+				blueFont.Print(strings.Repeat("________", 3))
+				blueFont.Println("_")
+			}
+		}
+		for j := 0; j < 9; j++ {
+			if j%3 == 0 {
+				blueFont.Print("| ")
+			}
+			element := s.boardMain.boardShow[i][j]
+			if element != 0 && s.boardMain.board[i][j] != element {
+				printFont = redFont.Printf
+			} else if s.boardMain.cursorPos.x == i && s.boardMain.cursorPos.y == j {
+				printFont = purpleFont.Printf
+			} else if element != 0 {
+				printFont = greenFont.Printf
+			} else {
+				printFont = fmt.Printf
+			}
+			_, _ = printFont("%d ", element)
+		}
+		blueFont.Print("|")
+		fmt.Println()
+	}
+	blueFont.Print(strings.Repeat("|_______", 3))
+	blueFont.Print("|")
+	blueFont.Println(strings.Repeat("________", 2))
+	for i := 6; i < 9; i++ {
+		for j := 0; j < 15; j++ {
+			var value int
+			var element int
+			if j < 9 {
+				element = s.boardMain.boardShow[i][j]
+				value = s.boardMain.board[i][j]
+			} else {
+				element = s.boardAdd.boardShow[i-6][j%9+3]
+				value = s.boardAdd.board[i-6][j%9+3]
+			}
+
+			if j%3 == 0 {
+				blueFont.Print("| ")
+			}
+
+			if element != 0 && value != element {
+				printFont = redFont.Printf
+			} else if s.boardMain.cursorPos.x == i && s.boardMain.cursorPos.y == j || s.boardAdd.cursorPos.x == i-6 && s.boardAdd.cursorPos.y == j-6 {
+				printFont = purpleFont.Printf
+			} else if element != 0 {
+				printFont = greenFont.Printf
+			} else {
+				printFont = fmt.Printf
+			}
+			_, _ = printFont("%d ", element)
+		}
+		blueFont.Print("|")
+		fmt.Println()
+	}
+	blueFont.Print(strings.Repeat("|_______", 5))
+	blueFont.Println("|")
+	for i := 3; i < 9; i++ {
+		if i%3 == 0 && i != 3 {
+			fmt.Print(strings.Repeat("  ", 8))
+			blueFont.Print(strings.Repeat("|_______", 3))
+			blueFont.Println("|")
+
+		}
+		fmt.Print(strings.Repeat("  ", 8))
+		for j := 0; j < 9; j++ {
+			if j%3 == 0 {
+				blueFont.Print("| ")
+			}
+			element := s.boardAdd.boardShow[i][j]
+			if element != 0 && s.boardAdd.board[i][j] != element {
+				printFont = redFont.Printf
+			} else if s.boardAdd.cursorPos.x == i && s.boardAdd.cursorPos.y == j {
+				printFont = purpleFont.Printf
+			} else if element != 0 {
+				printFont = greenFont.Printf
+			} else {
+				printFont = fmt.Printf
+			}
+			_, _ = printFont("%d ", element)
+		}
+		blueFont.Print("|")
+		fmt.Println()
+	}
+	fmt.Print(strings.Repeat("  ", 8))
+	blueFont.Print(strings.Repeat("|_______", 3))
 	blueFont.Println("|")
 }
 
@@ -596,15 +726,19 @@ func (s *BasicSudoku) IsComplete() bool {
 			}
 		}
 	}
+	s.changed = true
+	s.cursorPos = Vector2{-1, -1}
 	return true
+}
+func (s *TwoDoku) IsComplete() bool {
+	return s.boardMain.IsComplete() && s.boardAdd.IsComplete()
 }
 
 func (s *BasicSudoku) Display() bool {
 	return s.changed
 }
-
-func (s *BasicSudoku) GetSize() int {
-	return s.size
+func (s *TwoDoku) Display() bool {
+	return s.boardMain.changed || s.boardAdd.changed
 }
 
 func (s *BasicSudoku) Rules() string {
@@ -618,4 +752,49 @@ func (s *DiagonalSudoku) Rules() string {
 		"and 3x3 region must contain all digits from 1 to 9 without repetition.\n" +
 		"Use logic to fill in the empty cells based on the filled cells.\n" +
 		"No guessing is allowed, and each puzzle has exactly one unique solution."
+}
+func (s *TwoDoku) Rules() string {
+	return "Twodoku consists of two 9x9 Sudoku puzzles\n" +
+		"that share the same 3x3 region(9-th and 1-st for the corresponding board).\n" +
+		"Each row, column, and 3x3(can differ) region must contain all digits\n" +
+		"from 1 to 9(possibly up to C) without repetition.\n" +
+		"Use logic to fill in the empty cells based on the filled cells.\n" +
+		"No guessing is allowed, and each puzzle has exactly one unique solution."
+}
+
+func (s *BasicSudoku) Move(col, row int) {
+	newPos := Vector2{s.cursorPos.x + row, s.cursorPos.y + col}
+	if newPos.x < s.size && newPos.y < s.size && newPos.x >= 0 && newPos.y >= 0 {
+		s.cursorPos.x = newPos.x
+		s.cursorPos.y = newPos.y
+		s.changed = true
+	}
+}
+func (s *TwoDoku) Move(col, row int) {
+	var currentPos Vector2
+	if s.boardMain.cursorPos.x == -1 {
+		currentPos = s.boardAdd.cursorPos
+		currentPos.x += 6
+		currentPos.y += 6
+	} else if s.boardAdd.cursorPos.x == -1 {
+		currentPos = s.boardMain.cursorPos
+	} else {
+		currentPos = s.boardMain.cursorPos
+	}
+	newPos := Vector2{currentPos.x + row, currentPos.y + col}
+	// invalid position
+	if newPos.x > 14 || newPos.y > 14 || newPos.x < 0 || newPos.y < 0 || (newPos.x > 8 && newPos.y < 6) || (newPos.x < 6 && newPos.y > 8) {
+		return
+	}
+	s.boardAdd.cursorPos.x = newPos.x - 6
+	s.boardAdd.cursorPos.y = newPos.y - 6
+	s.boardMain.cursorPos.x = newPos.x
+	s.boardMain.cursorPos.y = newPos.y
+	if (newPos.x <= 8 && newPos.y < 6) || (newPos.x < 6 && newPos.y <= 8) {
+		s.boardAdd.cursorPos = Vector2{-1, -1}
+
+	} else if (newPos.x > 8 && newPos.y >= 6) || (newPos.x >= 6 && newPos.y > 8) {
+		s.boardMain.cursorPos = Vector2{-1, -1}
+	}
+	s.boardMain.changed = true
 }
