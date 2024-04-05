@@ -41,10 +41,6 @@ type TwoDoku struct {
 	boardAdd  BasicSudoku
 }
 
-type TriangularSudoku struct {
-	BasicSudoku
-}
-
 func findClosestFactors(x int) (int, int) {
 	var a, b int
 	abs := func(x int) int {

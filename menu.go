@@ -98,7 +98,7 @@ func menu() bool {
 var gameParam [4]int
 
 var gameOptions = [][]string{
-	{"square", "diagonal", "twodoku", "triangle"},
+	{"square", "diagonal", "twodoku"},
 	{"12x12", "9x9", "6x6", "4x4"},
 	{"easy", "medium", "hard"},
 	{"∞", "5 min", "10 min", "15 min", "30 min"},
