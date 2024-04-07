@@ -45,6 +45,10 @@ func game() bool {
 			} else if key == keyboard.KeyBackspace {
 				return true
 			}
+		} else if key == keyboard.KeyCtrlZ {
+			board.Undo()
+		} else if key == keyboard.KeyCtrlY {
+			board.Redo()
 		} else if '1' <= char && char <= '9' {
 			board.Enter(int(char - '0'))
 		} else if 'a' <= char && char <= 'z' {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"math"
 	"math/rand"
@@ -16,20 +17,29 @@ type SudokuBoard interface {
 	Move(col, row int)  // Move the cursor if possible
 	Rules() string      // Return rules of sudoku
 	Display() bool      // Return whether there were any changes since last call of Print
+	Undo()              // Undoes previous move
+	Redo()              // Cancels last redo call
 }
 
 type Vector2 struct {
 	x int
 	y int
 }
+type Change struct {
+	pos    Vector2
+	oldVal int
+	newVal int
+}
 
 type BasicSudoku struct {
-	boardShow [][]int
-	board     [][]int
-	size      int
-	nonetSize Vector2
-	changed   bool
-	cursorPos Vector2
+	boardShow     [][]int
+	board         [][]int
+	size          int
+	nonetSize     Vector2
+	changed       bool
+	cursorPos     Vector2
+	actions       *list.List
+	currentAction *list.Element
 }
 
 type DiagonalSudoku struct {
@@ -95,6 +105,7 @@ func (s *BasicSudoku) PreInit(size int) {
 	}
 
 	s.cursorPos = Vector2{0, 0}
+	s.actions = list.New()
 
 }
 
@@ -154,10 +165,19 @@ func (s *TwoDoku) Init(size, difficulty int) {
 }
 
 func (s *BasicSudoku) Enter(val int) bool {
-	if val > s.size || s.board[s.cursorPos.x][s.cursorPos.y] == s.boardShow[s.cursorPos.x][s.cursorPos.y] {
+	if val > s.size || s.board[s.cursorPos.x][s.cursorPos.y] == s.boardShow[s.cursorPos.x][s.cursorPos.y] || val == s.boardShow[s.cursorPos.x][s.cursorPos.y] {
 		return true
 	}
 
+	currAct := s.currentAction
+	for currAct != nil {
+		nextAct := currAct.Next()
+		s.actions.Remove(currAct)
+		currAct = nextAct
+	}
+
+	s.actions.PushBack(Change{s.cursorPos, s.boardShow[s.cursorPos.x][s.cursorPos.y], val})
+	s.currentAction = nil
 	s.changed = true
 
 	success := true
@@ -517,6 +537,13 @@ func (s *BasicSudoku) Print() {
 	}
 	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.nonetSize.y*2+1), s.size/s.nonetSize.y))
 	blueFont.Println("|")
+	//for e := s.actions.Front(); e != nil; e = e.Next() {
+	//	redFont.Println(e.Value)
+	//}
+	//redFont.Println()
+	//if s.currentAction != nil {
+	//	redFont.Println(s.currentAction.Value)
+	//}
 }
 func (s *DiagonalSudoku) Print() {
 	if !s.changed {
@@ -793,4 +820,44 @@ func (s *TwoDoku) Move(col, row int) {
 		s.boardMain.cursorPos = Vector2{-1, -1}
 	}
 	s.boardMain.changed = true
+}
+
+func (s *BasicSudoku) Undo() {
+	action := s.currentAction
+	if action == nil {
+		action = s.actions.Back()
+	} else {
+		action = action.Prev()
+	}
+	if action == nil {
+		return
+	}
+	s.currentAction = action
+	prevChange := action.Value.(Change)
+	change := Vector2{s.cursorPos.x - prevChange.pos.x, s.cursorPos.y - prevChange.pos.y}
+	//dialog.Info(fmt.Sprintf("%d %d", change.x, change.y))
+	s.Move(-change.y, -change.x)
+	s.boardShow[s.cursorPos.x][s.cursorPos.y] = prevChange.oldVal
+}
+func (s *TwoDoku) Undo() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *BasicSudoku) Redo() {
+	action := s.currentAction
+	if action == nil {
+		return
+	}
+	prevChange := action.Value.(Change)
+	change := Vector2{s.cursorPos.x - prevChange.pos.x, s.cursorPos.y - prevChange.pos.y}
+	//dialog.Info(fmt.Sprintf("%d %d", change.x, change.y))
+	s.Move(-change.y, -change.x)
+	s.boardShow[s.cursorPos.x][s.cursorPos.y] = prevChange.newVal
+
+	s.currentAction = action.Next()
+}
+func (s *TwoDoku) Redo() {
+	//TODO implement me
+	panic("implement me")
 }

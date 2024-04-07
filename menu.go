@@ -113,7 +113,7 @@ func newGameMenu() bool {
 	/*initialise menu data*/
 	selected := 5
 	outputLimit := [2]int{1, 6}
-	gameParam = [4]int{2, 1, 0, 0}
+	gameParam = [4]int{0, 1, 0, 0}
 
 	// check if option was changed since last print
 	lastSelected := -1
