@@ -18,7 +18,8 @@ type SudokuBoard interface {
 	Rules() string      // Return rules of sudoku
 	Display() bool      // Return whether there were any changes since last call of Print
 	Undo()              // Undoes previous move
-	Redo()              // Cancels last redo call
+	Redo()              // Cancels last undo call
+	SaveGame()          // Save game state
 }
 
 type Vector2 struct {
@@ -29,6 +30,10 @@ type Change struct {
 	pos    Vector2
 	oldVal int
 	newVal int
+}
+type DoubleChange struct {
+	main     bool
+	adjacent bool
 }
 
 type BasicSudoku struct {
@@ -47,8 +52,10 @@ type DiagonalSudoku struct {
 }
 
 type TwoDoku struct {
-	boardMain BasicSudoku
-	boardAdd  BasicSudoku
+	boardMain     BasicSudoku
+	boardAdd      BasicSudoku
+	actions       *list.List
+	currentAction *list.Element
 }
 
 func findClosestFactors(x int) (int, int) {
@@ -140,6 +147,8 @@ func (s *TwoDoku) Init(size, difficulty int) {
 	s.boardMain.PreInit(size)
 	s.boardAdd.PreInit(size)
 	s.boardAdd.cursorPos = Vector2{-1, -1}
+	s.actions = list.New()
+	s.currentAction = nil
 
 	FinishInit := func(board BasicSudoku) {
 		board.FillSudoku(0)
@@ -166,7 +175,7 @@ func (s *TwoDoku) Init(size, difficulty int) {
 
 func (s *BasicSudoku) Enter(val int) bool {
 	if val > s.size || s.board[s.cursorPos.x][s.cursorPos.y] == s.boardShow[s.cursorPos.x][s.cursorPos.y] || val == s.boardShow[s.cursorPos.x][s.cursorPos.y] {
-		return true
+		return false
 	}
 
 	currAct := s.currentAction
@@ -188,14 +197,32 @@ func (s *BasicSudoku) Enter(val int) bool {
 	return success
 }
 func (s *TwoDoku) Enter(val int) bool {
-	if s.boardAdd.cursorPos.x == -1 {
-		return s.boardMain.Enter(val)
-	} else if s.boardMain.cursorPos.x == -1 {
-		return s.boardAdd.Enter(val)
-	} else {
-		s.boardAdd.Enter(val)
-		return s.boardMain.Enter(val)
+	ret := false
+	if s.boardMain.cursorPos.x != -1 {
+		ret = s.boardMain.Enter(val)
 	}
+	if s.boardAdd.cursorPos.x != -1 {
+		ret = s.boardAdd.Enter(val)
+	}
+
+	if s.Display() {
+		currAct := s.currentAction
+		for currAct != nil {
+			nextAct := currAct.Next()
+			s.actions.Remove(currAct)
+			currAct = nextAct
+		}
+		if s.boardMain.changed && s.boardAdd.changed {
+			s.actions.PushBack(DoubleChange{true, true})
+			s.actions.PushBack(DoubleChange{false, true})
+		} else if s.boardMain.changed {
+			s.actions.PushBack(DoubleChange{true, false})
+		} else if s.boardAdd.changed {
+			s.actions.PushBack(DoubleChange{false, false})
+		}
+		s.currentAction = nil
+	}
+	return ret
 }
 
 func (s *BasicSudoku) FillSudoku(position int) bool {
@@ -694,6 +721,15 @@ func (s *TwoDoku) Print() {
 	fmt.Print(strings.Repeat("  ", 8))
 	blueFont.Print(strings.Repeat("|_______", 3))
 	blueFont.Println("|")
+	//for e := s.actions.Front(); e != nil; e = e.Next() {
+	//	redFont.Println(e.Value)
+	//}
+	//redFont.Println()
+	//if s.currentAction != nil {
+	//	redFont.Println(s.currentAction.Value)
+	//}
+	//redFont.Println(s.boardMain.cursorPos)
+	//redFont.Println(s.boardAdd.cursorPos)
 }
 
 func (s *BasicSudoku) Copy(s2 *BasicSudoku) {
@@ -840,8 +876,28 @@ func (s *BasicSudoku) Undo() {
 	s.boardShow[s.cursorPos.x][s.cursorPos.y] = prevChange.oldVal
 }
 func (s *TwoDoku) Undo() {
-	//TODO implement me
-	panic("implement me")
+	action := s.currentAction
+	if action == nil {
+		action = s.actions.Back()
+	} else {
+		action = action.Prev()
+	}
+	if action == nil {
+		return
+	}
+	s.currentAction = action
+	prevChange := action.Value.(DoubleChange)
+	if prevChange.main {
+		s.boardMain.Undo()
+		s.boardAdd.cursorPos = Vector2{-1, -1}
+	} else {
+		s.boardAdd.Undo()
+		s.boardMain.cursorPos = Vector2{-1, -1}
+		if prevChange.adjacent {
+			s.Undo()
+		}
+	}
+	s.Move(0, 0)
 }
 
 func (s *BasicSudoku) Redo() {
@@ -858,6 +914,30 @@ func (s *BasicSudoku) Redo() {
 	s.currentAction = action.Next()
 }
 func (s *TwoDoku) Redo() {
+	action := s.currentAction
+	if action == nil {
+		return
+	}
+	prevChange := action.Value.(DoubleChange)
+	s.currentAction = action.Next()
+	if prevChange.main {
+		s.boardMain.Redo()
+		s.boardAdd.cursorPos = Vector2{-1, -1}
+		if prevChange.adjacent {
+			s.Redo()
+		}
+	} else {
+		s.boardAdd.Redo()
+		s.boardMain.cursorPos = Vector2{-1, -1}
+	}
+	s.Move(0, 0)
+}
+
+func (s *BasicSudoku) SaveGame() {
+	//TODO implement me
+	panic("implement me")
+}
+func (s *TwoDoku) SaveGame() {
 	//TODO implement me
 	panic("implement me")
 }

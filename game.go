@@ -35,7 +35,7 @@ func game() bool {
 			board.Move(-1, 0)
 		} else if key == keyboard.KeyEsc {
 			ClearConsole()
-			blueFont.Println("Press Esc second time to exit or BackSpace to get back to menu(any other to continue)")
+			blueFont.Println("Press Esc second time to exit or BackSpace to get back to menu or Ctrl+S to save game(any other to continue)")
 			_, key, err := keyboard.GetKey()
 			if err != nil {
 				panic(err)
@@ -44,6 +44,9 @@ func game() bool {
 				return false
 			} else if key == keyboard.KeyBackspace {
 				return true
+			} else if key == keyboard.KeyCtrlS {
+				board.SaveGame()
+				return false
 			}
 		} else if key == keyboard.KeyCtrlZ {
 			board.Undo()
