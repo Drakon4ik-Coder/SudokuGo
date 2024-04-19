@@ -51,6 +51,8 @@ func game() bool {
 			board.Undo()
 		} else if key == keyboard.KeyCtrlY {
 			board.Redo()
+		} else if key == keyboard.KeyCtrlR {
+			board.RevealRandom()
 		} else if '1' <= char && char <= '9' {
 			board.Enter(int(char - '0'))
 		} else if 'a' <= char && char <= 'z' {

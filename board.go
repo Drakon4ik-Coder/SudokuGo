@@ -13,7 +13,7 @@ import (
 )
 
 type SudokuBoard interface {
-	//RevealRandom()                // Reveal random box
+	RevealRandom()      // Reveal random box
 	Enter(val int) bool // Check if the val is the same as in the Board
 	IsComplete() bool   // Check if the Board is complete
 	Print()             // Print the Board
@@ -565,6 +565,7 @@ func (s *BasicSudoku) Print() {
 	}
 	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.NonetSize.Ypos*2+1), s.Size/s.NonetSize.Ypos))
 	blueFont.Println("|")
+	//redFont.Println(s.CurrentAction)
 	//for e := s.Actions.Front(); e != nil; e = e.Next() {
 	//	redFont.Println(e.Value)
 	//}
@@ -860,12 +861,7 @@ func (s *TwoDoku) Move(col, row int) {
 }
 
 func (s *BasicSudoku) Undo() {
-	action := s.CurrentAction
-	if action == -1 {
-		action = len(s.Actions) - 1
-	} else {
-		action--
-	}
+	action := s.CurrentAction - 1
 	if action == -1 {
 		return
 	}
@@ -877,12 +873,7 @@ func (s *BasicSudoku) Undo() {
 	s.BoardShow[s.CursorPos.Xpos][s.CursorPos.Ypos] = prevChange.OldVal
 }
 func (s *TwoDoku) Undo() {
-	action := s.CurrentAction
-	if action == -1 {
-		action = len(s.Actions) - 1
-	} else {
-		action--
-	}
+	action := s.CurrentAction - 1
 	if action == -1 {
 		return
 	}
@@ -1025,4 +1016,31 @@ func (s *TwoDoku) SaveGame() error {
 	}
 
 	return nil
+}
+
+func (s *BasicSudoku) RevealRandom() {
+	row := rand.Intn(s.Size)
+	col := rand.Intn(s.Size)
+	for i := row; i < s.Size; i++ {
+		for j := col; j < s.Size; j++ {
+			if s.BoardShow[i][j] != s.Board[i][j] {
+				s.CursorPos = Vector2{i, j}
+				s.Enter(s.Board[i][j])
+				return
+			}
+		}
+	}
+	for i := 0; i < s.Size; i++ {
+		for j := 0; j < s.Size; j++ {
+			if s.BoardShow[i][j] != s.Board[i][j] {
+				s.CursorPos = Vector2{i, j}
+				s.Enter(s.Board[i][j])
+				return
+			}
+		}
+	}
+}
+func (s *TwoDoku) RevealRandom() {
+	//TODO implement me
+	panic("implement me")
 }
