@@ -36,7 +36,7 @@ func menu() bool {
 	selected := 1
 	outputLimit := [2]int{1, 3}
 
-	// check if option was changed since last print
+	// check if option was Changed since last print
 	lastSelected := -1
 
 	// function for drawing frame
@@ -76,11 +76,13 @@ func menu() bool {
 		}
 	}
 
-	// choose what to do next
+	// choose what to do Nextx
 	switch selected {
 	// new game
 	case 1:
-		return newGameMenu()
+		if newGameMenu() {
+			return initGame()
+		}
 	// load old game
 	case 2:
 		return loadGame()
@@ -115,7 +117,7 @@ func newGameMenu() bool {
 	outputLimit := [2]int{1, 6}
 	gameParam = [4]int{0, 1, 0, 0}
 
-	// check if option was changed since last print
+	// check if option was Changed since last print
 	lastSelected := -1
 
 	// function for drawing frame

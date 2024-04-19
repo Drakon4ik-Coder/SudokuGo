@@ -7,7 +7,6 @@ import (
 )
 
 func game() bool {
-	initGame()
 	if showRules() {
 		return true
 	}
