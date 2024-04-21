@@ -60,10 +60,7 @@ func menu() bool {
 
 	// iterate until option is chosen
 	for {
-		_, key, err := keyboard.GetKey()
-		if err != nil {
-			panic(err)
-		}
+		_, key, _ := keyboard.GetKey()
 
 		if key == keyboard.KeyArrowUp && selected > outputLimit[0] {
 			selected--
@@ -156,10 +153,7 @@ func newGameMenu() bool {
 
 	// iterate until option is chosen
 	for {
-		_, key, err := keyboard.GetKey()
-		if err != nil {
-			panic(err)
-		}
+		_, key, _ := keyboard.GetKey()
 
 		if key == keyboard.KeyArrowUp && selected > outputLimit[0] {
 			selected--
@@ -214,7 +208,6 @@ func newGameMenu() bool {
 			lastSelected = selected
 		}
 	}
-	return true
 }
 
 func initGame() bool {

@@ -11,15 +11,12 @@ func main() {
 	defer keyboard.Close()
 	// enable cursor after program finish
 	defer EnableCursor()
-
+	go readKeys(&char, &key, &keyBool)
 	// disable console cursor
 	if !DisableCursor() {
 		fmt.Print("Unfortunately we cannot disable your cursor blink. Press Enter to continue and Ctrl+Q to exit")
 		for {
-			_, key, err := keyboard.GetKey()
-			if err != nil {
-				panic(err)
-			}
+			_, key, _ := keyboard.GetKey()
 			if key == keyboard.KeyEnter {
 				break
 			} else if key == keyboard.KeyCtrlQ {

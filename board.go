@@ -24,6 +24,7 @@ type SudokuBoard interface {
 	Redo()              // Cancels last undo call
 	SaveGame() error    // Save game state
 	TimePass(sec int)   // Decrement left play time by sec seconds
+	TimeEnd() bool      // Return whether the game time has ended
 }
 
 type Vector2 struct {
@@ -1102,4 +1103,14 @@ func (s *BasicSudoku) TimePass(sec int) {
 }
 func (s *TwoDoku) TimePass(sec int) {
 	s.BoardMain.TimePass(sec)
+}
+
+func (s *BasicSudoku) TimeEnd() bool {
+	if s.TimeLeft == 0 {
+		return true
+	}
+	return false
+}
+func (s *TwoDoku) TimeEnd() bool {
+	return s.BoardMain.TimeEnd()
 }
