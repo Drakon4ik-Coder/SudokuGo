@@ -23,6 +23,7 @@ type SudokuBoard interface {
 	Undo()              // Undoes previous move
 	Redo()              // Cancels last undo call
 	SaveGame() error    // Save game state
+	TimePass(sec int)   // Decrement left play time by sec seconds
 }
 
 type Vector2 struct {
@@ -48,6 +49,7 @@ type BasicSudoku struct {
 	CursorPos     Vector2
 	Actions       []Change
 	CurrentAction int
+	TimeLeft      int
 }
 
 type DiagonalSudoku struct {
@@ -90,7 +92,7 @@ func findClosestFactors(x int) (int, int) {
 	return a, x / a
 }
 
-func (s *BasicSudoku) PreInit(size int) {
+func (s *BasicSudoku) PreInit(size int, playTime int) {
 	s.Changed = true
 
 	// Initialize Board with zeros
@@ -117,12 +119,12 @@ func (s *BasicSudoku) PreInit(size int) {
 	s.CursorPos = Vector2{0, 0}
 	s.Actions = nil
 	s.CurrentAction = 0
-
+	s.TimeLeft = playTime
 }
 
-func (s *BasicSudoku) Init(size, difficulty int) {
+func (s *BasicSudoku) Init(size, difficulty, playTime int) {
 
-	s.PreInit(size)
+	s.PreInit(size, playTime)
 
 	s.FillSudoku(0)
 	for i := 0; i < s.Size; i++ {
@@ -133,9 +135,9 @@ func (s *BasicSudoku) Init(size, difficulty int) {
 
 	s.EmptyGrid(difficulty)
 }
-func (s *DiagonalSudoku) Init(size, difficulty int) {
+func (s *DiagonalSudoku) Init(size, difficulty, playTime int) {
 
-	s.PreInit(size)
+	s.PreInit(size, playTime)
 
 	s.FillSudoku(0)
 	for i := 0; i < s.Size; i++ {
@@ -146,10 +148,10 @@ func (s *DiagonalSudoku) Init(size, difficulty int) {
 
 	s.EmptyGrid(difficulty)
 }
-func (s *TwoDoku) Init(size, difficulty int) {
+func (s *TwoDoku) Init(size, difficulty, playTime int) {
 
-	s.BoardMain.PreInit(size)
-	s.BoardAdd.PreInit(size)
+	s.BoardMain.PreInit(size, playTime)
+	s.BoardAdd.PreInit(size, playTime)
 	s.BoardAdd.CursorPos = Vector2{-1, -1}
 	s.Actions = nil
 	s.CurrentAction = 0
@@ -1072,4 +1074,16 @@ func (s *TwoDoku) RevealRandom() {
 		return
 	}
 	look(0, 0)
+}
+
+func (s *TwoDoku) TimePass(sec int) {
+	s.BoardMain.TimePass(sec)
+}
+func (s *BasicSudoku) TimePass(sec int) {
+	if s.TimeLeft > 0 {
+		s.TimeLeft -= sec
+		if s.TimeLeft <= 0 {
+			s.TimeLeft = 0
+		}
+	}
 }
