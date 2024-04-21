@@ -83,6 +83,7 @@ func menu() bool {
 	// new game
 	case 1:
 		if newGameMenu() {
+			blueFont.Println("Loading...")
 			return initGame()
 		} else {
 			return false
