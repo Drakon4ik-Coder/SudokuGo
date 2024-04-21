@@ -567,6 +567,11 @@ func (s *BasicSudoku) Print() {
 	}
 	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.NonetSize.Ypos*2+1), s.Size/s.NonetSize.Ypos))
 	blueFont.Println("|")
+	if s.TimeLeft != -1 {
+		minutes := s.TimeLeft / 60
+		seconds := s.TimeLeft % 60
+		greenFont.Printf("Time remaining: %02d:%02d\n", minutes, seconds)
+	}
 	//redFont.Println(s.CurrentAction)
 	//for e := s.Actions.Front(); e != nil; e = e.Next() {
 	//	redFont.Println(e.Value)
@@ -622,6 +627,11 @@ func (s *DiagonalSudoku) Print() {
 	}
 	blueFont.Print(strings.Repeat("|"+strings.Repeat("_", s.NonetSize.Ypos*2+1), s.Size/s.NonetSize.Ypos))
 	blueFont.Println("|")
+	if s.TimeLeft != -1 {
+		minutes := s.TimeLeft / 60
+		seconds := s.TimeLeft % 60
+		greenFont.Printf("Time remaining: %02d:%02d\n", minutes, seconds)
+	}
 }
 func (s *TwoDoku) Print() {
 	if !s.BoardMain.Changed && !s.BoardAdd.Changed {
@@ -725,6 +735,11 @@ func (s *TwoDoku) Print() {
 	fmt.Print(strings.Repeat("  ", 8))
 	blueFont.Print(strings.Repeat("|_______", 3))
 	blueFont.Println("|")
+	if s.BoardMain.TimeLeft != -1 {
+		minutes := s.BoardMain.TimeLeft / 60
+		seconds := s.BoardMain.TimeLeft % 60
+		greenFont.Printf("Time remaining: %02d:%02d\n", minutes, seconds)
+	}
 	//for e := s.Actions.Front(); e != nil; e = e.Next() {
 	//	redFont.Println(e.Value)
 	//}
@@ -1078,6 +1093,7 @@ func (s *TwoDoku) RevealRandom() {
 
 func (s *BasicSudoku) TimePass(sec int) {
 	if s.TimeLeft > 0 {
+		s.Changed = true
 		s.TimeLeft -= sec
 		if s.TimeLeft <= 0 {
 			s.TimeLeft = 0
