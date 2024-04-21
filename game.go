@@ -5,10 +5,25 @@ import (
 	"time"
 )
 
-func timeControl() {
+func timeControl(exit *bool) {
 	for {
 		time.Sleep(time.Second)
-		board.TimePass(1)
+		if !*exit {
+			board.TimePass(1)
+		}
+	}
+}
+
+func printSudo(exit *bool) {
+	for {
+		time.Sleep(time.Second / 70)
+		if !*exit {
+			if board.Display() {
+				ClearConsole()
+				blueFont.Println("Press Esc to exit or pause")
+				board.Print()
+			}
+		}
 	}
 }
 
@@ -16,15 +31,12 @@ func game() bool {
 	if showRules() {
 		return true
 	}
-	go timeControl()
+	exit := false
+	go timeControl(&exit)
+	go printSudo(&exit)
 	for {
-		if board.Display() {
-			ClearConsole()
-			blueFont.Println("Press Esc to exit")
-			board.Print()
-			if board.IsComplete() {
-				break
-			}
+		if board.IsComplete() {
+			break
 		}
 		char, key, err := keyboard.GetKey()
 		if err != nil {
@@ -40,6 +52,8 @@ func game() bool {
 		} else if key == keyboard.KeyArrowLeft {
 			board.Move(-1, 0)
 		} else if key == keyboard.KeyEsc {
+			exit = true
+			time.Sleep(time.Second / 10)
 			ClearConsole()
 			blueFont.Println("Press Esc second time to exit or BackSpace to get back to menu or Ctrl+S to save game(any other to continue)")
 			_, key, err = keyboard.GetKey()
@@ -57,6 +71,7 @@ func game() bool {
 				}
 				return false
 			}
+			exit = false
 		} else if key == keyboard.KeyCtrlZ {
 			board.Undo()
 		} else if key == keyboard.KeyCtrlY {
@@ -71,7 +86,7 @@ func game() bool {
 			board.Enter(int(char - 'A' + 10))
 		}
 	}
-
+	exit = true
 	ClearConsole()
 	board.Print()
 
