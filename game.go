@@ -2,14 +2,21 @@ package main
 
 import (
 	"github.com/eiannone/keyboard"
-	"strconv"
-	"strings"
+	"time"
 )
+
+func timeControl() {
+	for {
+		time.Sleep(time.Second)
+		board.TimePass(1)
+	}
+}
 
 func game() bool {
 	if showRules() {
 		return true
 	}
+	go timeControl()
 	for {
 		if board.Display() {
 			ClearConsole()
@@ -35,7 +42,7 @@ func game() bool {
 		} else if key == keyboard.KeyEsc {
 			ClearConsole()
 			blueFont.Println("Press Esc second time to exit or BackSpace to get back to menu or Ctrl+S to save game(any other to continue)")
-			_, key, err := keyboard.GetKey()
+			_, key, err = keyboard.GetKey()
 			if err != nil {
 				panic(err)
 			}
@@ -44,7 +51,10 @@ func game() bool {
 			} else if key == keyboard.KeyBackspace {
 				return true
 			} else if key == keyboard.KeyCtrlS {
-				board.SaveGame()
+				err = board.SaveGame()
+				if err != nil {
+					return false
+				}
 				return false
 			}
 		} else if key == keyboard.KeyCtrlZ {
@@ -98,32 +108,3 @@ func showRules() bool {
 }
 
 var board SudokuBoard
-
-func initGame() bool {
-	initBoard()
-	return true
-}
-
-func initBoard() {
-	boardType := gameOptions[0][gameParam[0]]
-	boardSize, _ := strconv.Atoi(strings.Split(gameOptions[1][gameParam[1]], "x")[0])
-	time := -1
-	if gameOptions[3][gameParam[3]] != "∞" {
-		time, _ = strconv.Atoi(strings.Split(gameOptions[3][gameParam[3]], " min")[0])
-		time *= 60
-	}
-	switch boardType {
-	case "square":
-		basic := &BasicSudoku{}
-		basic.Init(boardSize, gameParam[2], time)
-		board = basic
-	case "diagonal":
-		diagonal := &DiagonalSudoku{}
-		diagonal.Init(9, gameParam[2], time)
-		board = diagonal
-	case "twodoku":
-		twodoku := &TwoDoku{}
-		twodoku.Init(9, gameParam[2], time)
-		board = twodoku
-	}
-}

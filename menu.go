@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/eiannone/keyboard"
 	"github.com/fatih/color"
+	"strconv"
+	"strings"
 )
 
 // fonts for highlighting
@@ -212,4 +214,33 @@ func newGameMenu() bool {
 		}
 	}
 	return true
+}
+
+func initGame() bool {
+	initBoard()
+	return true
+}
+
+func initBoard() {
+	boardType := gameOptions[0][gameParam[0]]
+	boardSize, _ := strconv.Atoi(strings.Split(gameOptions[1][gameParam[1]], "x")[0])
+	time := -1
+	if gameOptions[3][gameParam[3]] != "∞" {
+		time, _ = strconv.Atoi(strings.Split(gameOptions[3][gameParam[3]], " min")[0])
+		time *= 60
+	}
+	switch boardType {
+	case "square":
+		basic := &BasicSudoku{}
+		basic.Init(boardSize, gameParam[2], time)
+		board = basic
+	case "diagonal":
+		diagonal := &DiagonalSudoku{}
+		diagonal.Init(9, gameParam[2], time)
+		board = diagonal
+	case "twodoku":
+		twodoku := &TwoDoku{}
+		twodoku.Init(9, gameParam[2], time)
+		board = twodoku
+	}
 }

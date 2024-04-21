@@ -1076,9 +1076,6 @@ func (s *TwoDoku) RevealRandom() {
 	look(0, 0)
 }
 
-func (s *TwoDoku) TimePass(sec int) {
-	s.BoardMain.TimePass(sec)
-}
 func (s *BasicSudoku) TimePass(sec int) {
 	if s.TimeLeft > 0 {
 		s.TimeLeft -= sec
@@ -1086,4 +1083,7 @@ func (s *BasicSudoku) TimePass(sec int) {
 			s.TimeLeft = 0
 		}
 	}
+}
+func (s *TwoDoku) TimePass(sec int) {
+	s.BoardMain.TimePass(sec)
 }
