@@ -82,6 +82,8 @@ func menu() bool {
 	case 1:
 		if newGameMenu() {
 			return initGame()
+		} else {
+			return false
 		}
 	// load old game
 	case 2:

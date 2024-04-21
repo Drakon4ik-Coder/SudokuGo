@@ -1021,26 +1021,55 @@ func (s *TwoDoku) SaveGame() error {
 func (s *BasicSudoku) RevealRandom() {
 	row := rand.Intn(s.Size)
 	col := rand.Intn(s.Size)
-	for i := row; i < s.Size; i++ {
-		for j := col; j < s.Size; j++ {
-			if s.BoardShow[i][j] != s.Board[i][j] {
-				s.CursorPos = Vector2{i, j}
-				s.Enter(s.Board[i][j])
-				return
+	look := func(x, y int) bool {
+		for i := x; i < s.Size; i++ {
+			for j := y; j < s.Size; j++ {
+				if s.BoardShow[i][j] != s.Board[i][j] {
+					s.CursorPos = Vector2{i, j}
+					s.Enter(s.Board[i][j])
+					return true
+				}
 			}
 		}
+		return false
 	}
-	for i := 0; i < s.Size; i++ {
-		for j := 0; j < s.Size; j++ {
-			if s.BoardShow[i][j] != s.Board[i][j] {
-				s.CursorPos = Vector2{i, j}
-				s.Enter(s.Board[i][j])
-				return
-			}
-		}
+	if look(row, col) {
+		return
 	}
+	look(0, 0)
 }
 func (s *TwoDoku) RevealRandom() {
-	//TODO implement me
-	panic("implement me")
+	row := rand.Intn(9)
+	col := rand.Intn(9)
+	look := func(x, y int) bool {
+		for i := x; i < 9; i++ {
+			for j := y; j < 9; j++ {
+				if s.BoardMain.BoardShow[i][j] != s.BoardMain.Board[i][j] {
+					s.BoardMain.CursorPos = Vector2{i, j}
+					if i >= 6 && j >= 6 {
+						s.BoardAdd.CursorPos = Vector2{i - 6, j - 6}
+					} else {
+						s.BoardAdd.CursorPos = Vector2{-1, -1}
+					}
+					s.Enter(s.BoardMain.Board[i][j])
+					return true
+				}
+				if s.BoardAdd.BoardShow[i][j] != s.BoardAdd.Board[i][j] {
+					s.BoardAdd.CursorPos = Vector2{i, j}
+					if i <= 2 && j <= 2 {
+						s.BoardMain.CursorPos = Vector2{i + 6, j + 6}
+					} else {
+						s.BoardMain.CursorPos = Vector2{-1, -1}
+					}
+					s.Enter(s.BoardAdd.Board[i][j])
+					return true
+				}
+			}
+		}
+		return false
+	}
+	if look(row, col) {
+		return
+	}
+	look(0, 0)
 }
