@@ -5,8 +5,10 @@ import (
 	"time"
 )
 
+// timer thread function
 func timeControl(exit *bool) {
 	for {
+		// wait 1 second and decrement board play time if game in not on pause
 		time.Sleep(time.Second)
 		if !*exit {
 			board.TimePass(1)
@@ -14,44 +16,55 @@ func timeControl(exit *bool) {
 	}
 }
 
+// print thread function
 func printSudo(exit *bool) {
+	// maximum fps
+	fps := time.Duration(100)
 	for {
-		time.Sleep(time.Second / 70)
-		if !*exit {
-			if board.Display() {
-				ClearConsole()
-				blueFont.Println("Press Esc to exit or pause")
-				board.Print()
-			}
+		// print if game in not on pause and there is info to display
+		time.Sleep(time.Second / fps)
+		if !*exit && board.Display() {
+			ClearConsole()
+			blueFont.Println("Press Esc to exit or pause")
+			board.Print()
 		}
 	}
 }
 
+// key reader thread function
 func readKeys(r *rune, k *keyboard.Key, b *bool) {
 	for {
+		// wait for rune and key
 		*r, *k, _ = keyboard.GetKey()
+		// bool key found
 		*b = true
 	}
 }
 
+// char, key and whether it was gotten
 var char rune
 var key keyboard.Key
 var keyBool = false
 
+// main game function
 func game() bool {
 	if showRules() {
 		return true
 	}
-	exit := false
-	go timeControl(&exit)
-	go printSudo(&exit)
+	// game on pause
+	pause := false
+	go timeControl(&pause)
+	go printSudo(&pause)
+	// game loop
 	for {
+		// if timer has ended or board is finished
 		if board.IsComplete() || board.TimeEnd() {
 			break
 		}
 
 		if keyBool {
 			keyBool = false
+			// move with arrows
 			if key == keyboard.KeyArrowUp {
 				board.Move(0, -1)
 			} else if key == keyboard.KeyArrowDown {
@@ -60,29 +73,34 @@ func game() bool {
 				board.Move(1, 0)
 			} else if key == keyboard.KeyArrowLeft {
 				board.Move(-1, 0)
-			} else if key == keyboard.KeyEsc {
-				exit = true
+			} else if key == keyboard.KeyEsc { // pause game
+				pause = true
 				ClearConsole()
-				blueFont.Println("Press Esc second time to exit or BackSpace to get back to menu or Ctrl+S to save game(any other to continue)")
-				for !keyBool {
+				blueFont.Println("Press Esc second time to pause or BackSpace to get back to menu or Ctrl+S to save game(any other to continue)")
+				for {
+					if keyBool {
+						keyBool = false
+						if key == keyboard.KeyEsc {
+							return false
+						} else if key == keyboard.KeyBackspace {
+							return true
+						} else if key == keyboard.KeyCtrlS {
+							_ = board.SaveGame()
+							return false
+						} else {
+							break
+						}
+					}
 				}
-				if key == keyboard.KeyEsc {
-					return false
-				} else if key == keyboard.KeyBackspace {
-					return true
-				} else if key == keyboard.KeyCtrlS {
-					_ = board.SaveGame()
-					return false
-				}
-				exit = false
+				pause = false
 				board.Move(0, 0)
-			} else if key == keyboard.KeyCtrlZ {
+			} else if key == keyboard.KeyCtrlZ { // undo move
 				board.Undo()
-			} else if key == keyboard.KeyCtrlY {
+			} else if key == keyboard.KeyCtrlY { // redo move
 				board.Redo()
-			} else if key == keyboard.KeyCtrlR {
+			} else if key == keyboard.KeyCtrlR { // reveal random element
 				board.RevealRandom()
-			} else if '1' <= char && char <= '9' {
+			} else if '1' <= char && char <= '9' { // enter 0 to 9
 				board.Enter(int(char - '0'))
 			} else if 'a' <= char && char <= 'z' {
 				board.Enter(int(char - 'a' + 10))
@@ -91,16 +109,17 @@ func game() bool {
 			}
 		}
 	}
-	exit = true
+	pause = true
 	ClearConsole()
 	board.Print()
 
+	// decide whether the user lost or won
 	if board.IsComplete() {
 		greenFont.Println("\nCongrats on finishing sudoku!")
 	} else {
 		redFont.Println("\nSorry, you lost on time. Good luck next time ;)")
 	}
-	blueFont.Println("Press Backspace to get back to menu, Esc to exit")
+	blueFont.Println("Press Backspace to get back to menu, Esc to pause")
 
 	for {
 		if keyBool {
@@ -113,18 +132,22 @@ func game() bool {
 	}
 }
 
+// show board rule
 func showRules() bool {
 	ClearConsole()
 	blueFont.Println(board.Rules())
 	blueFont.Println("Press Enter to continue. Backspace to return to menu")
 	for {
-		_, key, _ := keyboard.GetKey()
-		if key == keyboard.KeyEnter {
-			return false
-		} else if key == keyboard.KeyBackspace {
-			return true
+		if keyBool {
+			keyBool = false
+			if key == keyboard.KeyEnter {
+				return false
+			} else if key == keyboard.KeyBackspace {
+				return true
+			}
 		}
 	}
 }
 
+// game board
 var board SudokuBoard
