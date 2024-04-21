@@ -38,9 +38,6 @@ func menu() bool {
 	selected := 1
 	outputLimit := [2]int{1, 3}
 
-	// check if option was Changed since last print
-	lastSelected := -1
-
 	// function for drawing frame
 	Draw := func() {
 		ClearConsole()
@@ -60,22 +57,22 @@ func menu() bool {
 
 	// iterate until option is chosen
 	for {
-		_, key, _ := keyboard.GetKey()
-
-		if key == keyboard.KeyArrowUp && selected > outputLimit[0] {
-			selected--
-		} else if key == keyboard.KeyArrowDown && selected < outputLimit[1] {
-			selected++
-		} else if key == keyboard.KeyEnter {
-			break
-		}
-		if lastSelected != selected {
+		if keyBool {
+			keyBool = false
+			if key == keyboard.KeyArrowUp && selected > outputLimit[0] {
+				selected--
+			} else if key == keyboard.KeyArrowDown && selected < outputLimit[1] {
+				selected++
+			} else if key == keyboard.KeyEnter {
+				break
+			} else {
+				continue
+			}
 			Draw()
-			lastSelected = selected
 		}
 	}
 
-	// choose what to do Nextx
+	// choose what to do Next
 	switch selected {
 	// new game
 	case 1:
@@ -99,8 +96,10 @@ func menu() bool {
 	return true
 }
 
+// store new game parameters
 var gameParam [4]int
 
+// options for new game
 var gameOptions = [][]string{
 	{"square", "diagonal", "twodoku"},
 	{"12x12", "9x9", "6x6", "4x4"},
@@ -110,26 +109,23 @@ var gameOptions = [][]string{
 	{},
 }
 
+// init new game
 func newGameMenu() bool {
 	// start menu options with output
-	outputMenuOptions := [7]string{"Choose game options! (operate with arrows, then press Enter to confirm either Start or Exit)\n", "Shape", "Size", "Difficulty", "Clock", "Play", "Exit"}
+	outputMenuOptions := [6]string{"Shape", "Size", "Difficulty", "Clock", "Play", "Exit"}
 
 	/*initialise menu data*/
-	selected := 5
-	outputLimit := [2]int{1, 6}
+	selected := 4
+	outputLimit := [2]int{0, 5}
 	gameParam = [4]int{0, 1, 0, 0}
-
-	// check if option was Changed since last print
-	lastSelected := -1
 
 	// function for drawing frame
 	Draw := func() {
 		ClearConsole()
+		blueFont.Println("Choose game options! (operate with arrows, then press Enter to confirm either Start or Exit)")
 		for index, element := range outputMenuOptions {
-			if index < outputLimit[0] {
-				blueFont.Println(element)
-				continue
-			} else if selected == index {
+			// omit first info output
+			if selected == index {
 				purpleFont.Print("> " + element)
 			} else {
 				fmt.Print(element)
@@ -138,6 +134,7 @@ func newGameMenu() bool {
 			tmpLen := len(gameOptions[tmpPos])
 
 			if tmpLen > 0 {
+				// limit size choice for non Basic sudoku
 				if element == "Size" && gameParam[0] != 0 {
 					greenFont.Print(" < 9x9 >")
 				} else {
@@ -153,59 +150,55 @@ func newGameMenu() bool {
 
 	// iterate until option is chosen
 	for {
-		_, key, _ := keyboard.GetKey()
+		if keyBool {
+			keyBool = false
+			if key == keyboard.KeyArrowUp && selected > outputLimit[0] {
+				selected--
+			} else if key == keyboard.KeyArrowDown && selected < outputLimit[1] {
+				selected++
+			} else if key == keyboard.KeyArrowRight && !(gameParam[0] != 0 && selected == 2) {
+				// position in gameOptions and gameParam
+				tmpPos := selected - outputLimit[0]
+				// number of scroll options
+				tmpLen := len(gameOptions[tmpPos])
 
-		if key == keyboard.KeyArrowUp && selected > outputLimit[0] {
-			selected--
-		} else if key == keyboard.KeyArrowDown && selected < outputLimit[1] {
-			selected++
-		} else if key == keyboard.KeyArrowRight && !(gameParam[0] != 0 && selected == 2) {
-			// position in gameOptions and gameParam
-			tmpPos := selected - outputLimit[0]
-			// number of scroll options
-			tmpLen := len(gameOptions[tmpPos])
+				// if there are option
+				if tmpLen > 0 {
+					// cycle all options
+					gameParam[tmpPos] = (gameParam[tmpPos] + 1) % tmpLen
+				}
 
-			// if there are option
-			if tmpLen > 0 {
-				// cycle all options
-				gameParam[tmpPos] = (gameParam[tmpPos] + 1) % tmpLen
-				// trigger frame redraw
-				lastSelected = -1
+			} else if key == keyboard.KeyArrowLeft && !(gameParam[0] != 0 && selected == 2) {
+				// position in gameOptions and gameParam
+				tmpPos := selected - outputLimit[0]
+				// number of scroll options
+				tmpLen := len(gameOptions[tmpPos])
+				// if there are option
+				if tmpLen > 0 {
+					// cycle all options
+					gameParam[tmpPos] = func() int {
+						newVal := gameParam[tmpPos] - 1
+						if newVal < 0 {
+							return tmpLen + newVal
+						}
+						return newVal
+					}()
+				}
+
+			} else if key == keyboard.KeyEnter {
+				// exit only in cases of Play or Exit
+				switch selected {
+				// Play
+				case 4:
+					return true
+				// Exit
+				case 5:
+					return false
+				}
+			} else {
+				continue
 			}
-
-		} else if key == keyboard.KeyArrowLeft && !(gameParam[0] != 0 && selected == 2) {
-			// position in gameOptions and gameParam
-			tmpPos := selected - outputLimit[0]
-			// number of scroll options
-			tmpLen := len(gameOptions[tmpPos])
-			// if there are option
-			if tmpLen > 0 {
-				// cycle all options
-				gameParam[tmpPos] = func() int {
-					newVal := gameParam[tmpPos] - 1
-					if newVal < 0 {
-						return tmpLen + newVal
-					}
-					return newVal
-				}()
-				// trigger frame redraw
-				lastSelected = -1
-			}
-
-		} else if key == keyboard.KeyEnter {
-			// exit only in cases of Play or Exit
-			switch selected {
-			// Play
-			case 5:
-				return true
-			// Exit
-			case 6:
-				return false
-			}
-		}
-		if lastSelected != selected {
 			Draw()
-			lastSelected = selected
 		}
 	}
 }
@@ -216,6 +209,7 @@ func initGame() bool {
 }
 
 func initBoard() {
+	// compute board parameters
 	boardType := gameOptions[0][gameParam[0]]
 	boardSize, _ := strconv.Atoi(strings.Split(gameOptions[1][gameParam[1]], "x")[0])
 	time := -1

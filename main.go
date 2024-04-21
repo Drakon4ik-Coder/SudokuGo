@@ -18,6 +18,7 @@ func main() {
 		fmt.Print("Unfortunately we cannot disable your cursor blink. Press Enter to continue and Ctrl+Q to exit")
 		for {
 			if keyBool {
+				keyBool = false
 				if key == keyboard.KeyEnter {
 					break
 				} else if key == keyboard.KeyCtrlQ {
