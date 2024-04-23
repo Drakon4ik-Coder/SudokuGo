@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"github.com/eiannone/keyboard"
-	"os"
 )
 
 func main() {
@@ -14,19 +12,7 @@ func main() {
 	// thread to wait for keys
 	go readKeys(&char, &key, &keyBool)
 	// disable console cursor
-	if DisableCursor() {
-		fmt.Print("Unfortunately we cannot disable your cursor blink. Press Enter to continue and Ctrl+Q to exit")
-		for {
-			if keyBool {
-				keyBool = false
-				if key == keyboard.KeyEnter {
-					break
-				} else if key == keyboard.KeyCtrlQ {
-					os.Exit(101)
-				}
-			}
-		}
-	}
+	DisableCursor()
 
 	// program loop
 	contin := true

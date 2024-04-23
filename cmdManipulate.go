@@ -14,42 +14,32 @@ func init() {
 	screen.MoveTopLeft()
 }
 
+// ClearConsole clear console
 func ClearConsole() {
+	// move to top left corner of console
 	screen.MoveTopLeft()
 	windth, height := screen.Size()
+	// override all text with spaces
 	fmt.Print(strings.Repeat(strings.Repeat(" ", windth)+"\n", height))
 	screen.MoveTopLeft()
 }
 
-func DisableCursor() bool {
+// DisableCursor make cursor invisible (supports linux and windows)
+func DisableCursor() {
 	if runtime.GOOS == "windows" {
 		stdout := windows.Handle(os.Stdout.Fd())
 		var originalMode uint32
 		// enable ANSI escape codes
 		windows.GetConsoleMode(stdout, &originalMode)
 		windows.SetConsoleMode(stdout, originalMode|windows.ENABLE_VIRTUAL_TERMINAL_PROCESSING)
-		// ANSI escape code
-		fmt.Print("\033[?25l")
-
-	} else if runtime.GOOS == "linux" {
-		fmt.Print("\033[?25l")
-	} else {
-		return false
 	}
-	return true
+	// ANSI escape code to disable cursor
+	fmt.Print("\033[?25l")
 }
 
-// make terminal cursor visible
-func EnableCursor() bool {
-	if runtime.GOOS == "windows" {
-		fmt.Print("\033[?25h")
-
-	} else if runtime.GOOS == "linux" {
-		fmt.Print("\033[?25h")
-	} else {
-		ClearConsole()
-		return false
-	}
+// EnableCursor make terminal cursor visible (supports linux and windows)
+func EnableCursor() {
+	// ANSI escape code to enable cursor
+	fmt.Print("\033[?25h")
 	ClearConsole()
-	return true
 }

@@ -156,7 +156,7 @@ func newGameMenu() bool {
 				selected--
 			} else if key == keyboard.KeyArrowDown && selected < outputLimit[1] {
 				selected++
-			} else if key == keyboard.KeyArrowRight && !(gameParam[0] != 0 && selected == 2) {
+			} else if key == keyboard.KeyArrowRight && !(gameParam[0] != 0 && selected == 1) {
 				// position in gameOptions and gameParam
 				tmpPos := selected - outputLimit[0]
 				// number of scroll options
@@ -168,7 +168,7 @@ func newGameMenu() bool {
 					gameParam[tmpPos] = (gameParam[tmpPos] + 1) % tmpLen
 				}
 
-			} else if key == keyboard.KeyArrowLeft && !(gameParam[0] != 0 && selected == 2) {
+			} else if key == keyboard.KeyArrowLeft && !(gameParam[0] != 0 && selected == 1) {
 				// position in gameOptions and gameParam
 				tmpPos := selected - outputLimit[0]
 				// number of scroll options
@@ -217,6 +217,7 @@ func initBoard() {
 		time, _ = strconv.Atoi(strings.Split(gameOptions[3][gameParam[3]], " min")[0])
 		time *= 60
 	}
+	// choose which board to create
 	switch boardType {
 	case "square":
 		basic := &BasicSudoku{}
